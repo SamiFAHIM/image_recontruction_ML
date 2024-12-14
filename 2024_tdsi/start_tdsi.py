@@ -123,12 +123,12 @@ plt.imshow
 # alpha_list = [2, 10, 50] # Poisson law parameter for noisy image acquisitions
 alpha = 10 # Poisson law parameter for noisy image acquisitions
 
-und = 4
+und = 1
 M = img_size ** 2 // und  # Number of measurements (here, 1/4 of the pixels)
 
-order_name = 'low_freq'
-# order_name = 'naive'
-# order_name = 'variance'
+#order_name = 'low_freq'
+#order_name = 'naive'
+order_name = 'variance'
 # order_name = 'random'
 # order_name = 'random_variance'
 # order_name = 'random_variance_2'
@@ -159,8 +159,8 @@ prep_op = prep.SplitPoisson(alpha, meas_op)
 # Measurement vectors
 torch.manual_seed(0)    # for reproducibility
 noise_op.alpha = alpha
+print ("shape of x", x.shape)
 y = noise_op(x)
-
 
 
 # %% STATIC RECO sans Pinv classe
