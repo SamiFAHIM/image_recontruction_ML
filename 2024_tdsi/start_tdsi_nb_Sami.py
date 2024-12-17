@@ -26,6 +26,7 @@ from spyrit.core.recon import PinvNet
 from spyrit.misc.disp import add_colorbar, noaxis
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
+from spyrit.misc.metrics import psnr_,ssim
 
 # %% Order of measurements
 def choose_pattern_order(order_name, img_size):
@@ -267,8 +268,9 @@ with torch.no_grad():
     noise_op.alpha = alpha
     y = noise_op(x)#1
     m = prep_op(y)
-    f_stat = meas_op.pinv(m)
-    axis[0,1].imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
+    f_stat1 = meas_op.pinv(m)
+    im1=f_stat1.view(h, w).cpu().numpy()
+    axis[0,1].imshow(im1, cmap='gray')
     axis[0,1].set_title('Static reconstruction low_freq')
 
 
@@ -282,12 +284,51 @@ with torch.no_grad():
     # print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
     y = noise_op(x)
     m = prep_op(y)
-    f_stat = meas_op.pinv(m)
-    axis[1,1].imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
+    f_stat2 = meas_op.pinv(m)
+    im2=f_stat2.view(h, w).cpu().numpy()
+    axis[1,1].imshow(im2, cmap='gray')
     axis[1,1].set_title('Static reconstruction 70_lf')
     
 # plt.imshow ( meas_op.H[1023,:].reshape(img_size, img_size))
 # print ("taille de H", meas_op.H.shape)
+# %% IMAGE 3 and 4
+meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("random",img_size)))
+noise_op = noise.Poisson(meas_op)
+prep_op = prep.SplitPoisson(alpha, meas_op)
+# Measurement vectors
+torch.manual_seed(0)    # for reproducibility
+noise_op.alpha = alpha
+# print ("shape of x", x.shape)
+# print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
+y = noise_op(x)
+m = prep_op(y)
+f_stat3 = meas_op.pinv(m)
+im3=f_stat3.view(h, w).cpu().numpy()
+
+meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("variance",img_size)))
+noise_op = noise.Poisson(meas_op)
+prep_op = prep.SplitPoisson(alpha, meas_op)
+# Measurement vectors
+torch.manual_seed(0)    # for reproducibility
+noise_op.alpha = alpha
+# print ("shape of x", x.shape)
+# print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
+y = noise_op(x)
+m = prep_op(y)
+f_stat4 = meas_op.pinv(m)
+im4=f_stat4.view(h, w).cpu().numpy()
+# %% Metrics
+print("\n")
+print("PSNR Low_freq=", psnr_(x_plot.squeeze(), im1))
+print("PSNR variance=", psnr_(x_plot.squeeze(), im4))
+print("PSNR 70_lf=", psnr_(x_plot.squeeze(), im2))
+print("PSNR random=", psnr_(x_plot.squeeze(), im3))
+print("\n")
+print("SSIM Low_freq=", ssim(x_plot.squeeze(), im1))
+print("SSIM variance=", ssim(x_plot.squeeze(), im4))
+print("SSIM 70_lf=", ssim(x_plot.squeeze(), im2))
+print("SSIM random=", ssim(x_plot.squeeze(), im3))
+
 
 
 # In[29]:
@@ -572,5 +613,4 @@ plt.xlabel("Epochs", fontsize=20)
 plt.ylabel("Loss", fontsize=20)
 plt.legend(fontsize=20)
 plt.show()
-
 
