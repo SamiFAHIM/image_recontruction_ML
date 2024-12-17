@@ -196,7 +196,7 @@ plt.imshow(x_plot.squeeze(), cmap="gray")
 # Measurement parameters
 # alpha_list = [2, 10, 50] # Poisson law parameter for noisy image acquisitions
 alpha = 10 # Poisson law parameter for noisy image acquisitions
-img_size = 64
+img_size = 128
 h=img_size
 und = 4
 M = img_size ** 2 // und  # Number of measurements (here, 1/4 of the pixels)
@@ -252,22 +252,20 @@ y = noise_op(x)
 
 # In[7]:
 
-
+print(x.shape)
 # PLOTTING THE MEAURED IMAGE
 figure, axis = plt.subplots(2, 2)
 with torch.no_grad():
     axis[0,0].imshow(x_plot.squeeze(), cmap="gray")
     axis[1,0].imshow(x_plot.squeeze(), cmap="gray")
-        # Measurement and noise operators
+    # Measurement and noise operators
     meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("low_freq",img_size)))
     noise_op = noise.Poisson(meas_op)
     prep_op = prep.SplitPoisson(alpha, meas_op)
     # Measurement vectors
     torch.manual_seed(0)    # for reproducibility
     noise_op.alpha = alpha
-    # print ("shape of x", x.shape)
-    # print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
-    y = noise_op(x)
+    y = noise_op(x)#1
     m = prep_op(y)
     f_stat = meas_op.pinv(m)
     axis[0,1].imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
