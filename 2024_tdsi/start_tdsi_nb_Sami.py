@@ -423,7 +423,7 @@ from pathlib import Path
 # Parameters
 h = 64  # image size hxh
 data_root = Path("./data_model_training")  # path to data folder (where the dataset is stored)
-batch_size = 32
+batch_size = 256
 
 # Dataloader for STL-10 dataset
 mode_run = True
@@ -438,7 +438,7 @@ if mode_run:
     )
 
 
-# In[6]:
+# In[6]: Defining hadamart matrix and the measurement operator and the dataloader
 
 
 from spyrit.core.meas import Linear
@@ -473,10 +473,10 @@ prep_op = prep.SplitPoisson(alpha, meas_op)
 # In[7]:
 
 
-from spyrit.core.nnet import ConvNet
+from spyrit.core.nnet import ConvNet, Unet
 from spyrit.core.recon import PinvNet
 
-denoiser = ConvNet()
+denoiser = Unet()
 model = PinvNet(noise_op, prep_op, denoi=denoiser)
 
 # Send to GPU if available
@@ -490,13 +490,13 @@ if torch.cuda.device_count() > 1:
 model = model.to(device)
 
 
-# In[8]:
+# In[8]: defining the model and the training parameters and training the model
 
 
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
-from spyrit.core.train import save_net, Weight_Decay_Loss
+from spyrit.core.train import save_net, Weight_Decay_Loss , load_net
 
 # Parameters
 lr = 1e-3
@@ -524,7 +524,9 @@ tb_freq = (
 name_run = "stdl10_hadampos"
 now = datetime.now().strftime("%Y-%m-%d_%H-%M")
 tb_path = f"runs/runs_{name_run}_n{int(N0)}_m{M}/{now}"
-
+# regarder comment load un modele
+#checkpoint_path = "./model/model_epoch_0.pth"
+#load_net(checkpoint_path, model, device, False)
 # Train the network
 if mode_run:
     model, train_info = train_model(
@@ -535,7 +537,7 @@ if mode_run:
         dataloaders,
         device,
         model_root,
-        num_epochs=num_epochs,
+        num_epochs=num_epochs,#-1, # because already trained for 1 epoch
         disp=True,
         do_checkpoint=checkpoint_interval,
         tb_path=tb_path,
