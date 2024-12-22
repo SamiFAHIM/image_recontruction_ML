@@ -27,6 +27,7 @@ from spyrit.misc.disp import add_colorbar, noaxis
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
+from utils.pattern_order import choose_pattern_order
 
 # %% Order of measurements
 def choose_pattern_order(order_name, img_size):
@@ -159,7 +160,7 @@ print("Using device:", device)
 # Load images
 # --------------------------------------------------------------------
 
-img_size = 128 # image size
+img_size = 64 # image size
 
 print("Loading image...")
 # crop to desired size, set to black and white, normalize
@@ -197,7 +198,7 @@ plt.imshow(x_plot.squeeze(), cmap="gray")
 # Measurement parameters
 # alpha_list = [2, 10, 50] # Poisson law parameter for noisy image acquisitions
 alpha = 10 # Poisson law parameter for noisy image acquisitions
-img_size = 128
+img_size = 64
 h=img_size
 und = 4
 M = img_size ** 2 // und  # Number of measurements (here, 1/4 of the pixels)
@@ -375,10 +376,17 @@ with torch.no_grad():
 
 # %% Reco with Pinv and a Unet Denoiser
 #Load the pretrained weights of the Unet
+from spyrit.core.nnet import ConvNet, Unet
+from spyrit.core.recon import PinvNet
+from spyrit.core.train import load_net
+
 
 denoi_net = Unet ()
+meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("random",img_size)))
+noise_op = noise.Poisson(meas_op)
+prep_op = prep.SplitPoisson(alpha, meas_op)
 full_op = PinvNet ( noise_op , prep_op, denoi_net)
-data_name = "pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth"
+data_name = "pinv-net_unet_stl10_N0_10_N_64_M_1024_epo_5_lr_0.001_sss_10_sdr_0.5_bs_256.pth"
 #entrainé sur un ordre des basse freq et sur des images 128
 # recontruire avec un ordre de subsampling HF et réentrainé un modèle sur ça
 # prendre un peut de BF et un de 
@@ -438,6 +446,8 @@ if mode_run:
     )
 
 
+
+
 # In[6]: Defining hadamart matrix and the measurement operator and the dataloader
 
 
@@ -472,7 +482,7 @@ prep_op = prep.SplitPoisson(alpha, meas_op)
 
 # In[7]:
 
-
+torch.cuda.empty_cache()
 from spyrit.core.nnet import ConvNet, Unet
 from spyrit.core.recon import PinvNet
 
@@ -488,6 +498,8 @@ if torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 model = model.to(device)
+
+
 
 
 # In[8]: defining the model and the training parameters and training the model
