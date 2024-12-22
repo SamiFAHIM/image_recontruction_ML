@@ -141,10 +141,12 @@ image_folder = 'data/images/'       # images for simulated measurements
 model_folder = 'model/'             # reconstruction models
 stat_folder  = 'stat/'              # statistics
 
+#
+working_directory= 'C:/Users/marti/OneDrive - INSA Lyon/5GE/TDSI/Projet/fork_sami/image_recontruction_ML-1/2024_tdsi/'
 # Full paths
-image_folder_full = Path.cwd() / Path(image_folder)
-model_folder_full = Path.cwd() / Path(model_folder)
-stat_folder_full  = Path.cwd() / Path(stat_folder)
+image_folder_full = Path(working_directory) / Path(image_folder)
+model_folder_full = Path(working_directory) / Path(model_folder)
+stat_folder_full  = Path(working_directory)/ Path(stat_folder)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
@@ -248,15 +250,16 @@ y = noise_op(x)
 from spyrit.core.nnet import ConvNet, Unet
 from spyrit.core.recon import PinvNet
 from spyrit.core.train import load_net
+import os
 
 
 denoi_net = Unet ()
 full_op = PinvNet ( noise_op , prep_op, denoi_net)
-data_name = "pinv-net_unet_stl10_N0_10_N_64_M_1024_epo_5_lr_0.001_sss_10_sdr_0.5_bs_256.pth"
+data_name = "pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth"
 #entrainé sur un ordre des basse freq et sur des images 128
 # recontruire avec un ordre de subsampling HF et réentrainé un modèle sur ça
 # prendre un peut de BF et un de 
-model_unet_path = os.path.join(model_folder, data_name)
+model_unet_path = os.path.join(model_folder_full, data_name)
 load_net(model_unet_path, full_op, device, False)
 
     
@@ -273,16 +276,22 @@ print("Shape of y before reconstruct:", y.shape)
 # Ajustement si nécessaire
 if y.shape != expected_shape:
     y = y.view(B * C, -1)
-    print("Shape of y after reshaping:", y.shape)
+    print("unexpected shape ,Shape of y after reshaping:", y.shape)
 
+if y.dim() == 2:
+    print ( 'yo')
+    y = y.unsqueeze(1)  # Ajoute une dimension pour les canaux
 # Appel de la reconstruction
 with torch.no_grad():
     x_rec_2 = full_op.reconstruct(y)
 print("Reconstructed shape:", x_rec_2.shape)
-axis[1,1].imshow(x_rec_2.view(h, w).cpu().numpy(), cmap='gray')
-axis[1,1].set_title(' PinvNEt  Unet Denoiser')
+# %% Plot
+fig,axis = plt.subplots(1,2)
+
+axis[1].imshow(x_rec_2.view(h, w).cpu().numpy(), cmap='gray')
+axis[1].set_title(' PinvNEt  Unet Denoiser')
     
-axis[1,0].imshow(x.view(h,w).cpu().numpy(), cmap='gray')
-axis[1,0].set_title('original image')
+axis[0].imshow(x.view(h,w).cpu().numpy(), cmap='gray')
+axis[0].set_title('original image')
 plt.show()
 # %%
