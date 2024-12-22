@@ -1,6 +1,25 @@
 # %% 
 # Imports
 # --------------------------------------------------------------------
+import os
+from pathlib import Path
+
+# Dynamically set the project root based on the file's location
+current_file = Path(__file__).resolve()
+project_root = current_file.parents[1]  # Adjust the number to match your directory structure
+
+# Set the working directory to the project root
+os.chdir(project_root)
+
+# Add project root to sys.path for module imports
+import sys
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+# Confirm
+print(f"Project root set to: {project_root}")
+print(f"Current working directory: {os.getcwd()}")
+
 from pathlib import Path
 
 import math
@@ -43,7 +62,7 @@ def choose_pattern_order(order_name, img_size):
         else:
             cov_name = 'Cov_%dx%d.npy' % (img_size, img_size)
 
-        Cov = np.load(stat_folder + cov_name)
+        Cov = np.load(stat_folder_full / Path(cov_name))
         print(f"Cov matrix {cov_name} loaded")
 
         Ord_rec = Cov2Var(Cov)
@@ -72,7 +91,7 @@ def choose_pattern_order(order_name, img_size):
 # Experimental data
 image_folder = 'data/images/'       # images for simulated measurements
 model_folder = 'model/'             # reconstruction models
-stat_folder  = 'stat/'              # statistics
+stat_folder  = 'src/stat/'              # statistics
 
 # Full paths
 image_folder_full = Path.cwd() / Path(image_folder)
@@ -114,7 +133,7 @@ print("Image shape:", x.shape)
 
 x_plot = x.view(-1, h, h).cpu().numpy()
 
-plt.imshow
+plt.imshow(x_plot[0], cmap='gray')
 
 # %% 
 # Simulate measurements for three image intensities
@@ -123,7 +142,7 @@ plt.imshow
 # alpha_list = [2, 10, 50] # Poisson law parameter for noisy image acquisitions
 alpha = 10 # Poisson law parameter for noisy image acquisitions
 
-und = 1
+und = 4
 M = img_size ** 2 // und  # Number of measurements (here, 1/4 of the pixels)
 
 #order_name = 'low_freq'
@@ -137,6 +156,7 @@ order_name = 'variance'
 
 
 #%% 
+print("current directory", Path.cwd())
 Ord_rec = choose_pattern_order(order_name, img_size)
 
 # Mask of order

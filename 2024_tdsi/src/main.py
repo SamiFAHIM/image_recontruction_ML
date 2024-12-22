@@ -3,7 +3,24 @@
 
 # In[1]:
 
+import os
+from pathlib import Path
 
+# Dynamically set the project root based on the file's location
+current_file = Path(__file__).resolve()
+project_root = current_file.parents[1]  # Adjust the number to match your directory structure
+
+# Set the working directory to the project root
+os.chdir(project_root)
+
+# Add project root to sys.path for module imports
+import sys
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+# Confirm
+print(f"Project root set to: {project_root}")
+print(f"Current working directory: {os.getcwd()}")
 from pathlib import Path
 
 import math
@@ -27,120 +44,10 @@ from spyrit.misc.disp import add_colorbar, noaxis
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from utils.pattern_order import choose_pattern_order
-
-# %% Order of measurements
-def choose_pattern_order(order_name, img_size):
-    np.random.seed(seed=0)
-
-    if order_name == 'low_freq':
-        M_xy = math.ceil(M**0.5)
-        Ord_rec = np.ones((img_size, img_size))
-
-        Ord_rec[:,M_xy:] = 0
-        Ord_rec[M_xy:,:] = 0
-
-    elif order_name == 'naive':
-        Ord_rec = np.ones((img_size, img_size))
-
-    elif order_name == 'variance':
-        if img_size == 128:
-            cov_name = 'Cov_8_%dx%d.npy' % (img_size, img_size)
-        else:
-            cov_name = 'Cov_%dx%d.npy' % (img_size, img_size)
-
-        Cov = np.load(stat_folder + cov_name)
-        print(f"Cov matrix {cov_name} loaded")
-        print ("the size of the cov matrix", Cov.shape)
-        Ord_rec = Cov2Var(Cov)
-
-    elif order_name == 'random':
-    #     set random pixel of the Ord_rec to 1
-        # Initialize a 64x64 matrix with zeros
-        matrix = np.zeros((img_size, img_size), dtype=int)
-        
-        # Flatten the matrix to work with indices
-        flat_indices = np.arange(matrix.size)  # Create an array of indices [0, 1, ..., 4095]
-        
-        # Randomly choose M_xy**2 unique indices to be set to 1
-        M_xy = math.ceil(M**0.5)
-        random_indices = np.random.choice(flat_indices, size=M_xy**2, replace=False)
-        
-        # Set the chosen indices to 1
-        matrix.flat[random_indices] = 1
-        
-        # Verify the result
-        print("Matrix shape:", matrix.shape)
-        print("Number of elements set to 1:", np.sum(matrix))        
-        Ord_rec = matrix
-    elif order_name == 'random_variance':
-    #     # TODO 
-        # set a recontruction in high frequencies
-         # Initialize a 64x64 matrix with zeros
-        matrix = np.zeros((img_size, img_size), dtype=int)
-         # Flatten the matrix to work with indices
-        flat_indices = np.arange(matrix.size)  # Create an array of indices [0, 1, ..., 4095]
-        
-    elif order_name=='high_freq':
-        M_xy = math.ceil(M**0.5)
-        Ord_rec = np.ones((img_size, img_size))
-
-        Ord_rec[:,:M_xy] = 0
-        Ord_rec[:M_xy,:] = 0
+from src.pattern_order import choose_pattern_order
 
 
-
-    
-    elif order_name == '70_lf':
-        # M_xy = math.ceil(M**0.5)
-        quad_size=int(img_size/2)
-        print("quad_size",quad_size)
-        first_quadrant= np.zeros((quad_size,quad_size))
-        second_quadrant= np.zeros((quad_size,quad_size))
-        third_quadrant= np.zeros((quad_size,quad_size))
-        fourth_quadrant= np.zeros((quad_size,quad_size))
-        S=first_quadrant.size
-        first_ones_to_keep=int(M*0.7)
-        second_ones_to_keep=int(M*0.1)
-        third_ones_to_keep=int(M*0.1)
-        fourth_ones_to_keep=int(M*0.1)
-        indices1 = np.random.choice(S, first_ones_to_keep, replace=False)
-        indices2 = np.random.choice(S, second_ones_to_keep, replace=False)
-        indices3 = np.random.choice(S, third_ones_to_keep, replace=False)
-        indices4 = np.random.choice(S, fourth_ones_to_keep, replace=False)
-        
-        # first_quadrant.flatten()[indices1]=1
-
-        # Modify the original array using its flat iterator
-        first_quadrant.flat[indices1] = 1
-        second_quadrant.flat[indices2] = 1
-        third_quadrant.flat[indices3] = 1
-        fourth_quadrant.flat[indices4] = 1
-
-        # Initialize the full image
-        Ord_rec = np.zeros((img_size, img_size))
-
-        Ord_rec[:quad_size,:quad_size] = first_quadrant
-        Ord_rec[:quad_size,quad_size:] = second_quadrant
-        Ord_rec[quad_size:,:quad_size] = third_quadrant
-        Ord_rec[quad_size:,quad_size:] = fourth_quadrant
-
-    # elif order_name == 'random_variance_3':
-    #     # TODO
-
-    else:
-        print('Order name is invalid')
-        exit(1)
-
-    return Ord_rec
-
-
-# In[2]:
-
-
-# General
-# --------------------------------------------------------------------
-# Experimental data
+# In[2]: Defining paths, and the device
 image_folder = 'data/images/'       # images for simulated measurements
 model_folder = 'model/'             # reconstruction models
 stat_folder  = 'stat/'              # statistics
@@ -149,18 +56,29 @@ stat_folder  = 'stat/'              # statistics
 image_folder_full = Path.cwd() / Path(image_folder)
 model_folder_full = Path.cwd() / Path(model_folder)
 stat_folder_full  = Path.cwd() / Path(stat_folder)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.cuda.empty_cache()
+device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using device:", device)
 
 
+
+
+
 # In[3]:
+#Defining the image size and the noise constants and the subsampling factor
+img_size = 64
+alpha = 10 # Poisson law parameter for noisy image acquisitions
+subsampling_factor = 4
+M = img_size ** 2 // subsampling_factor  # Number of measurements (1/4 of the pixels)
 
 
+
+
+
+
+# In[3]:
 # Load images
 # --------------------------------------------------------------------
-
-img_size = 64 # image size
 
 print("Loading image...")
 # crop to desired size, set to black and white, normalize
@@ -182,26 +100,19 @@ dataloader = torch.utils.data.DataLoader(
 # select the image
 x, _ = next(iter(dataloader))
 x = x[1].unsqueeze(0)
-b, c, h, w = x.shape
+b, c, h, w = x.shape # batch size, channels, height, width
 print("Image shape:", x.shape)
 
-x_plot = x.view(-1, h, h).cpu().numpy()
+x_plot = x.view(-1, h, h).cpu().numpy()# reshape to h x h
 
 plt.imshow(x_plot.squeeze(), cmap="gray")
 
 
-# In[3]:
+# In[4]:
 
 
-# Simulate measurements for three image intensities
-# --------------------------------------------------------------------
-# Measurement parameters
-# alpha_list = [2, 10, 50] # Poisson law parameter for noisy image acquisitions
-alpha = 10 # Poisson law parameter for noisy image acquisitions
-img_size = 64
-h=img_size
-und = 4
-M = img_size ** 2 // und  # Number of measurements (here, 1/4 of the pixels)
+# Choose the pattern order
+
 
 #order_name = 'low_freq'
 #order_name = 'naive'
@@ -305,7 +216,7 @@ y = noise_op(x)
 m = prep_op(y)
 f_stat3 = meas_op.pinv(m)
 im3=f_stat3.view(h, w).cpu().numpy()
-
+print("stat folder",stat_folder_full)
 meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("variance",img_size)))
 noise_op = noise.Poisson(meas_op)
 prep_op = prep.SplitPoisson(alpha, meas_op)

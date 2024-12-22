@@ -1,10 +1,19 @@
 # %%
 # IMPORTS
+"""
+Files for downloading data from the Pilot and Tomoradio warehouses.
+The data is used for the reconstruction of hyperspectral images.
+The data includes:
+- Covariance matrix and mean image for reconstruction
+- Models for reconstruction
+- Raw data
+- Images for simulated measurements
 
+"""
 from pathlib import Path
 from spyrit.misc.load_data import download_girder
 
-# %%
+
 # %% SETTINGS
 # change this if you want to download the files in a different folder
 destination = Path.cwd() # / Path("your_subfolder")

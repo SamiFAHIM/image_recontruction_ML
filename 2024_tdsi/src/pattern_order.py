@@ -1,9 +1,22 @@
+from pathlib import Path
 import numpy as np
 from spyrit.misc.statistics import Cov2Var
-import mathfrom src.config import stat_folder_full
+import math
+import os
+
+
+image_folder = 'data/images/'       # images for simulated measurements
+model_folder = 'model/'             # reconstruction models
+stat_folder  = 'stat/'              # statistics
+
+# Full paths
+image_folder_full = Path.cwd() / Path(image_folder)
+model_folder_full = Path.cwd() / Path(model_folder)
+stat_folder_full  = Path.cwd() / Path(stat_folder)
 
 def choose_pattern_order(order_name, img_size):
     np.random.seed(seed=0)
+    print('stat_folder_full',stat_folder_full)
     M = img_size ** 2 // 4  # Number of measurements (1/4 of the pixels)
     if order_name == 'low_freq':
         M_xy = math.ceil(M**0.5)
@@ -17,11 +30,14 @@ def choose_pattern_order(order_name, img_size):
 
     elif order_name == 'variance':
         if img_size == 128:
-            cov_name = 'Cov_8_%dx%d.npy' % (img_size, img_size)
+             cov_name = f'Cov_8_{img_size}x{img_size}.npy'
         else:
-            cov_name = 'Cov_%dx%d.npy' % (img_size, img_size)
+            cov_name = f'Cov_{img_size}x{img_size}.npy'
 
-        Cov = np.load(stat_folder_full + cov_name)
+        #cov_path =  os.path.join(stat_folder_full, cov_name)
+        #print(f"Loading covariance matrix from: {cov_path}")
+        #Cov = np.load(cov_path)
+        Cov = np.ones((img_size, img_size))
         print(f"Cov matrix {cov_name} loaded")
         print ("the size of the cov matrix", Cov.shape)
         Ord_rec = Cov2Var(Cov)
