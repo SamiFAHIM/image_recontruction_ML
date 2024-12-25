@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
+#%% IMports
 import os
 from pathlib import Path
 
@@ -108,74 +104,78 @@ x_plot = x.view(-1, h, h).cpu().numpy()# reshape to h x h
 plt.imshow(x_plot.squeeze(), cmap="gray")
 
 
-# In[4]:
+
+#%%
+figure, axis = plt.subplots(2, 2)
+with torch.no_grad():
+    axis[0,0].imshow(x_plot.squeeze(), cmap="gray")
+    axis[1,0].imshow(x_plot.squeeze(), cmap="gray")
+    # Measurement and noise operators
+    meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("low_freq",img_size)))
+    noise_op = noise.Poisson(meas_op)
+    prep_op = prep.SplitPoisson(alpha, meas_op)
+    # Measurement vectors
+    torch.manual_seed(0)    # for reproducibility
+    noise_op.alpha = alpha
+    y = noise_op(x)#1
+    m = prep_op(y)
+    f_stat1 = meas_op.pinv(m)
+    im1=f_stat1.view(h, w).cpu().numpy()
+    axis[0,1].imshow(im1, cmap='gray')
+    axis[0,1].set_title('Static reconstruction low_freq')
 
 
-# Choose the pattern order
-
-
-#order_name = 'low_freq'
-#order_name = 'naive'
-#order_name = 'high_freq'
-#order_name = 'variance'
-#order_name = 'random'
-# order_name = 'random_variance'
-# order_name = 'random_variance_2'
-# order_name = 'random_variance_3'
-order_name='70_lf'
-
-
-# In[5]:
-
-
-Ord_rec = choose_pattern_order(order_name, img_size)
-count_ones= np.sum(Ord_rec)
-print("number of ones in Ord_rec=",count_ones,"\nM=",(int(0.8*M)))
-
-# Mask of order
-mask_basis = np.zeros((h, h))
-mask_basis.flat[:M] = 1 # M valeurs qui sont égales à 1
-print("size of the variance vector",Ord_rec.shape)
-mask = sort_by_significance(mask_basis, Ord_rec, axis="flatten")
-
-im = plt.imshow(mask)
-plt.title("Acquisition in " + order_name + " order", fontsize=20)
-add_colorbar(im, "bottom", size="20%")
-
-
-# In[6]:
-
-
-# Measurement and noise operators
-meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
+    meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("70_lf",img_size)))
+    noise_op = noise.Poisson(meas_op)
+    prep_op = prep.SplitPoisson(alpha, meas_op)
+    # Measurement vectors
+    torch.manual_seed(0)    # for reproducibility
+    noise_op.alpha = alpha
+    # print ("shape of x", x.shape)
+    # print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
+    y = noise_op(x)
+    m = prep_op(y)
+    f_stat2 = meas_op.pinv(m)
+    im2=f_stat2.view(h, w).cpu().numpy()
+    axis[1,1].imshow(im2, cmap='gray')
+    axis[1,1].set_title('Static reconstruction 70_lf')
+    
+# plt.imshow ( meas_op.H[1023,:].reshape(img_size, img_size))
+# print ("taille de H", meas_op.H.shape)
+# %% IMAGE 3 and 4
+meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("random",img_size)))
 noise_op = noise.Poisson(meas_op)
 prep_op = prep.SplitPoisson(alpha, meas_op)
-
- 
 # Measurement vectors
 torch.manual_seed(0)    # for reproducibility
 noise_op.alpha = alpha
-print ("shape of x", x.shape)
-print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
-
-
-
+# print ("shape of x", x.shape)
+# print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
 y = noise_op(x)
-print(x.shape)
-
-# %% STATIC RECO sans Pinv classe
-from spyrit.core.nnet import Unet, ConvNet
-from spyrit.core.train import load_net
-import os
-
-figure, axis = plt.subplots(2, 2)
-with torch.no_grad():
-    m = prep_op(y)
-    f_stat = meas_op.pinv(m)
-
-    axis[0,0].imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
-    axis[0,0].set_title('Static reconstruction,fig i')
-    
-    
-
-
+m = prep_op(y)
+f_stat3 = meas_op.pinv(m)
+im3=f_stat3.view(h, w).cpu().numpy()
+print("stat folder",stat_folder_full)
+meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("variance",img_size)))
+noise_op = noise.Poisson(meas_op)
+prep_op = prep.SplitPoisson(alpha, meas_op)
+# Measurement vectors
+torch.manual_seed(0)    # for reproducibility
+noise_op.alpha = alpha
+# print ("shape of x", x.shape)
+# print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
+y = noise_op(x)
+m = prep_op(y)
+f_stat4 = meas_op.pinv(m)
+im4=f_stat4.view(h, w).cpu().numpy()
+# %% Metrics
+print("\n")
+print("PSNR Low_freq=", psnr_(x_plot.squeeze(), im1))
+print("PSNR variance=", psnr_(x_plot.squeeze(), im4))
+print("PSNR 70_lf=", psnr_(x_plot.squeeze(), im2))
+print("PSNR random=", psnr_(x_plot.squeeze(), im3))
+print("\n")
+print("SSIM Low_freq=", ssim(x_plot.squeeze(), im1))
+print("SSIM variance=", ssim(x_plot.squeeze(), im4))
+print("SSIM 70_lf=", ssim(x_plot.squeeze(), im2))
+print("SSIM random=", ssim(x_plot.squeeze(), im3))
