@@ -1,5 +1,22 @@
 # In[1]:
+import os
+from pathlib import Path
 
+# Dynamically set the project root based on the file's location
+current_file = Path(__file__).resolve()
+project_root = current_file.parents[1]  # Adjust the number to match your directory structure
+
+# Set the working directory to the project root
+os.chdir(project_root)
+
+# Add project root to sys.path for module imports
+import sys
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+# Confirm
+print(f"Project root set to: {project_root}")
+print(f"Current working directory: {os.getcwd()}")
 
 from pathlib import Path
 
@@ -24,7 +41,7 @@ from spyrit.misc.disp import add_colorbar, noaxis, imagesc
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from src.pattern_order import choose_pattern_order
+from pattern_order import choose_pattern_order
 
 # %% Order of measurements
 
@@ -156,7 +173,7 @@ import os
 
 denoi_net = Unet ()
 full_op = PinvNet ( noise_op , prep_op, denoi_net)
-data_name = "pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth"
+data_name = "noise_set_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_5_lr_0.001_sss_10_sdr_0.5_bs_256.pth"
 #entrainé sur un ordre des basse freq et sur des images 128
 # recontruire avec un ordre de subsampling HF et réentrainé un modèle sur ça
 # prendre un peut de BF et un de 
@@ -195,4 +212,7 @@ axis[1].set_title(' PinvNEt  Unet Denoiser')
 axis[0].imshow(x.view(h,w).cpu().numpy(), cmap='gray')
 axis[0].set_title('original image')
 plt.show()
+print(x.shape)
+print(x_rec_2.shape)
+print("PSNR Low_freq=", psnr_(x.view(h, h).cpu().numpy(), x_rec_2.view(h, h).cpu().numpy()))
 # %%
