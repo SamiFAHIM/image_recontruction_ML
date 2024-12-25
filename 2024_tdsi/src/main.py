@@ -106,6 +106,7 @@ print("Image shape:", x.shape)
 x_plot = x.view(-1, h, h).cpu().numpy()# reshape to h x h
 
 plt.imshow(x_plot.squeeze(), cmap="gray")
+print("value of the image",x_plot[0,40,40])
 
 
 # In[4]:
@@ -145,37 +146,36 @@ add_colorbar(im, "bottom", size="20%")
 
 # In[6]:
 
-
+torch.manual_seed(0)    # for reproducibility
 # Measurement and noise operators
 meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
-noise_op = noise.Poisson(meas_op)
+noise_op = noise.Poisson(meas_op,alpha=alpha)
 prep_op = prep.SplitPoisson(alpha, meas_op)
 
  
 # Measurement vectors
-torch.manual_seed(0)    # for reproducibility
-noise_op.alpha = alpha
+
 print ("shape of x", x.shape)
 print ("measurment operator" , meas_op.H_pinv.shape)# c'est la pseudo inverse
 
 
 
 y = noise_op(x)
-print(x.shape)
+print(y.shape)
 
 # %% STATIC RECO sans Pinv classe
 from spyrit.core.nnet import Unet, ConvNet
 from spyrit.core.train import load_net
 import os
 
-figure, axis = plt.subplots(2, 2)
 with torch.no_grad():
     m = prep_op(y)
     f_stat = meas_op.pinv(m)
 
-    axis[0,0].imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
-    axis[0,0].set_title('Static reconstruction,fig i')
-    
+    plt.imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
+    plt.title('Static reconstruction,fig i')
+    f_stat_plot = f_stat.view(h, w).cpu().numpy()# reshape to h x h
+    print("value of the image",np.min(f_stat_plot),np.max(f_stat_plot))
     
 
 

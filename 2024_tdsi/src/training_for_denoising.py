@@ -130,7 +130,7 @@ plt.title("Acquisition in " + order_name + " order", fontsize=20)
 add_colorbar(im, "bottom", size="20%")
 
 meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
-noise_op = noise.Poisson(meas_op)
+noise_op = noise.Poisson(meas_op,alpha=alpha)
 prep_op = prep.SplitPoisson(alpha, meas_op)
 
 
@@ -173,7 +173,7 @@ N0=alpha
 loss = nn.MSELoss()
 criterion = Weight_Decay_Loss(loss)
 optimizer = optim.Adam(model.parameters(), lr=lr)
-scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)# We train for one epoch only to check that everything works fine.
+scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
 
 from spyrit.core.train import train_model
 from datetime import datetime
