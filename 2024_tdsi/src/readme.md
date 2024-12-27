@@ -6,6 +6,6 @@ explanation of the different file's role :
 - different_pattern_order_testing : reconstruction using different pattern order without denoising, and calculation of metrics PSNR and SSIM
 
 - main.py : just a file for different purpose testing
-- pattern_order.py : a function that sets the reconstruction order
+- pattern_order.py : a function that sets the reconstruction order with img_size/4 measurements
 - testing_trained_models.py : a file for testing different trained models  
 - training_for_denoising.py : a file to train denoising models

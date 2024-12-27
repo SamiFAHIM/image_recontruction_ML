@@ -41,11 +41,11 @@ from spyrit.misc.disp import add_colorbar, noaxis, imagesc
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from pattern_order import choose_pattern_order
+from src.pattern_order import choose_pattern_order
 
 # %% Order of measurements
 
-# In[2]:
+
 
 
 # General
@@ -77,7 +77,7 @@ print("Using device:", device)
 # --------------------------------------------------------------------
 
 img_size = 64 # image size
-i = 1
+i = 0
 print("Loading image...")
 # crop to desired size, set to black and white, normalize
 transform = stats.transform_gray_norm(img_size)
@@ -116,8 +116,10 @@ imagesc(x[0, 0, :, :], r"$x$ in [-1, 1]")
 # Measurement parameters
 # alpha_list = [2, 10, 50] # Poisson law parameter for noisy image acquisitions
 alpha = 10 # Poisson law parameter for noisy image acquisitions
-img_size = 64
+# img_size = 64
 h=img_size
+
+#deprecated?
 und = 4
 M = img_size ** 2 // und  # Number of measurements (here, 1/4 of the pixels)
 
@@ -173,7 +175,7 @@ import os
 
 denoi_net = Unet ()
 full_op = PinvNet ( noise_op , prep_op, denoi_net)
-data_name = "noise_set_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_5_lr_0.001_sss_10_sdr_0.5_bs_256.pth"
+data_name = "right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth"
 #entrainé sur un ordre des basse freq et sur des images 128
 # recontruire avec un ordre de subsampling HF et réentrainé un modèle sur ça
 # prendre un peut de BF et un de 
@@ -197,7 +199,6 @@ if y.shape != expected_shape:
     print("unexpected shape ,Shape of y after reshaping:", y.shape)
 
 if y.dim() == 2:
-    print ( 'yo')
     y = y.unsqueeze(1)  # Ajoute une dimension pour les canaux
 # Appel de la reconstruction
 with torch.no_grad():
