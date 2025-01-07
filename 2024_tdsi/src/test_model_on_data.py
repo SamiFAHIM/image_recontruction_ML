@@ -124,6 +124,8 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
     data_name = model_name
     model_unet_path = os.path.join(model_folder_full, data_name)
     train.load_net(model_unet_path, full_op, device, False)
+    psnr_tab=np.zeros((x.shape[0],1))
+    ssim_tab=np.zeros((x.shape[0],1))
     for i,image in enumerate(x):
         X1 = x[i:i+1, :, :, :].detach().clone()
         if (verbose):
@@ -142,17 +144,22 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
             plt.show()
 
         with torch.no_grad():
-            x_rec_2 = full_op.reconstruct(y)
+            x_rec = full_op.reconstruct(y)
         if verbose:
             plt.figure()
-            plt.imshow(x_rec_2.view(h, w).cpu().numpy(), cmap='gray')
+            plt.imshow(x_rec.view(h, w).cpu().numpy(), cmap='gray')
             plt.title('Reconstructed image')
             plt.colorbar()
             plt.show()
+        psnr_tab[i,0]=psnr_(X1.view(h, h).cpu().numpy(), x_rec.view(h, h).cpu().numpy())  
+        ssim_tab[i,0]=ssim(X1.view(h, h).cpu().numpy(), x_rec.view(h, h).cpu().numpy())
+    return psnr_tab,ssim_tab
+
 
 
 # %% 
-test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=True)
+psnr_tab,ssim_tab= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+
 
 
 # %%
