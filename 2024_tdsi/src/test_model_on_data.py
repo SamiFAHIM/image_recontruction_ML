@@ -42,7 +42,7 @@ from src.pattern_order import choose_pattern_order
 def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,alpha=10,und=4,img_size=64,verbose=False,model_path=None):
     """
     Test a denoising model on a set of images.
-    NEED TO ADD STAT to USE COV order
+
     Parameters
     ----------
     model_name : str
@@ -111,42 +111,48 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
         add_colorbar(im, "bottom", size="20%")
     
 
-        # SIMULATE MEASUREMENTS
-    x = x[0:1, :, :, :]
-    X1 = x.detach().clone()
-    if (verbose):
-        plt.figure()
-        imagesc(X1[0, 0, :, :], r"$x$")
-    b, c, h, w = X1.shape
+    # SIMULATE MEASUREMENTS
+    h=img_size
     alpha = alpha
     meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
     noise_op = noise.Poisson(meas_op, alpha)
     prep_op = prep.SplitPoisson(alpha, meas_op)
     torch.manual_seed(0)    # for reproducibility
     noise_op.alpha = alpha
-    y = noise_op(X1)
-    m = prep_op(y)
-    f_stat = meas_op.pinv(m)
-
-    if verbose:
-        plt.figure()
-        plt.imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
-        plt.title('Static reconstruction')
-        plt.colorbar()
-        plt.show()
-
     denoi_net = model_type()
     full_op = recon.PinvNet ( noise_op , prep_op, denoi_net)
     data_name = model_name
-    #entrainé sur un ordre des basse freq et sur des images 128
-    # recontruire avec un ordre de subsampling HF et réentrainé un modèle sur ça
-    # prendre un peut de BF et un de 
     model_unet_path = os.path.join(model_folder_full, data_name)
     train.load_net(model_unet_path, full_op, device, False)
+    for i,image in enumerate(x):
+        X1 = x[i:i+1, :, :, :].detach().clone()
+        if (verbose):
+            print("shape of X1 is ", X1.shape)
+            plt.figure()
+            imagesc(X1[0, 0, :, :], r"$x$")
+        b, c, h, w = X1.shape
+        y = noise_op(X1)
+        m = prep_op(y)
+        if verbose:
+            f_stat = meas_op.pinv(m)
+            plt.figure()
+            plt.imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
+            plt.title('Static reconstruction')
+            plt.colorbar()
+            plt.show()
+
+        with torch.no_grad():
+            x_rec_2 = full_op.reconstruct(y)
+        if verbose:
+            plt.figure()
+            plt.imshow(x_rec_2.view(h, w).cpu().numpy(), cmap='gray')
+            plt.title('Reconstructed image')
+            plt.colorbar()
+            plt.show()
 
 
 # %% 
-test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=True)
 
 
 # %%
