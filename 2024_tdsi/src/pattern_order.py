@@ -16,7 +16,7 @@ stat_folder_full  = Path.cwd() / Path(stat_folder)
 
 def choose_pattern_order(order_name, img_size):
     np.random.seed(seed=0)
-    print('stat_folder_full',stat_folder_full)
+    # print('stat_folder_full',stat_folder_full)
     M = img_size ** 2 // 4  # Number of measurements (1/4 of the pixels)
     if order_name == 'low_freq':
         M_xy = math.ceil(M**0.5)
