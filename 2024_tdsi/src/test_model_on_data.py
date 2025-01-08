@@ -177,7 +177,7 @@ psnr,ssi = test_model_on_data(model_name='pinv-net_unet_imagenet_N0_10_m_hadam-s
 
 
 # %%
-alpha_list=list(range(50, 0, -2))
+alpha_list=list(range(20, 0, -2))
 psnr_mean=np.zeros((2,len(alpha_list)))
 ssim_mean=np.zeros((2,len(alpha_list)))
 psnr_std=np.zeros((2,len(alpha_list)))
@@ -190,43 +190,48 @@ for index,alpha in enumerate(alpha_list):
     ssim_std[0,index]=np.std(ssi)
 
     psnr,ssi= test_model_on_data(model_name='pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth',pattern_order='low_freq',alpha=alpha,img_size=128,verbose=False)
-    psnr_mean[0,index]=np.mean(psnr)
-    ssim_mean[0,index]=np.mean(ssi)
-    psnr_std[0,index]=np.std(psnr)
-    ssim_std[0,index]=np.std(ssi)
+    psnr_mean[1,index]=np.mean(psnr)
+    ssim_mean[1,index]=np.mean(ssi)
+    psnr_std[1,index]=np.std(psnr)
+    ssim_std[1,index]=np.std(ssi)
 
 
 #%% 
 # Create a 2x2 grid of subplots
 fig, axes = plt.subplots(2, 2, figsize=(8, 6))  # 2 rows, 2 columns
-
+legend=["70_lf","low_freq"]
 # Accessing each subplot
-axes[0, 0].plot(alpha_list, psnr_mean)  # Top-left
-axes[0, 0].set_title("PSNR Mean")
+axes[0,0].plot(alpha_list, psnr_mean[0,:])  # Top-left
+axes[0,0].plot(alpha_list, psnr_mean[1,:])  # Top-left
+axes[0,0].set_title("PSNR Mean")
 axes[0,0].set_xlabel("Noise level")
-axes[0,0].set_legend( ["70_lf","low_freq"])
+axes[0,0].set_ylim(10,20)
+axes[0,0].legend(legend)
 
-axes[0, 1].plot(alpha_list, ssim_mean)  # Top-right
-axes[0, 1].set_title("SSIM Mean")
+axes[0,1].plot(alpha_list, ssim_mean[0,:])  # Top-right
+axes[0,1].plot(alpha_list, ssim_mean[1,:])  # Top-right
+axes[0,1].set_title("SSIM Mean")
 axes[0,1].set_xlabel("Noise level")
-axes[0,1].set_legend( ["70_lf","low_freq"])
+axes[0,1].set_ylim(0,1)
+axes[0,1].legend(legend)
 
 
-axes[1, 0].plot(alpha_list, psnr_std)  # Bottom-left
-axes[1, 0].set_title("PSNR STD")
+axes[1,0].plot(alpha_list, psnr_std[0,:])  # Bottom-left
+axes[1,0].plot(alpha_list, psnr_std[1,:])  # Bottom-left
+axes[1,0].set_title("PSNR STD")
+axes[1,0].set_ylim(0,3)
 axes[1,0].set_xlabel("Noise level")
-axes[1,0].set_legend( ["70_lf","low_freq"])
+axes[1,0].legend(legend)
 
 
-axes[1, 1].plot(alpha_list, ssim_std)  # Bottom-right
-axes[1, 1].set_title("SSIM STD")
+axes[1,1].plot(alpha_list, ssim_std[0,:])  # Bottom-right
+axes[1,1].plot(alpha_list, ssim_std[1,:])  # Bottom-right
+axes[1,1].set_title("SSIM STD")
 axes[1,1].set_xlabel("Noise level")
-axes[1,1].set_legend( ["70_lf","low_freq"])
-
-
+axes[1,1].set_ylim(0,1)
+axes[1,1].legend(legend)
 # Adjust layout to prevent overlap
 plt.tight_layout()
-
 # Show the plots
 plt.show()
 # %%
