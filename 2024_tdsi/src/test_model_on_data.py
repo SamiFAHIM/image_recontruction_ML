@@ -158,8 +158,75 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
 
 # %% 
-psnr_tab,ssim_tab= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+psnr_tab= np.zeros((3,5))
+ssim_tab= np.zeros((3,5))
+psnr,ssi = test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+psnr_tab[0,:]=psnr.squeeze()
+ssim_tab[0,:]=ssi.squeeze()
+psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+psnr_tab[1,:]=psnr.squeeze()
+ssim_tab[1,:]=ssi.squeeze()
+psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+psnr_tab[2,:]=psnr.squeeze()
+ssim_tab[2,:]=ssi.squeeze()
+
+#%% 
+
+psnr,ssi = test_model_on_data(model_name='pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth',pattern_order='low_freq',alpha=10,img_size=128,verbose=False,model_path='C:\\Users\\marti\\OneDrive - INSA Lyon\\5GE\TDSI\Projet\\fork_sami\\image_recontruction_ML-1\\2024_tdsi\\model')
 
 
 
+# %%
+alpha_list=list(range(50, 0, -2))
+psnr_mean=np.zeros((2,len(alpha_list)))
+ssim_mean=np.zeros((2,len(alpha_list)))
+psnr_std=np.zeros((2,len(alpha_list)))
+ssim_std=np.zeros((2,len(alpha_list)))
+for index,alpha in enumerate(alpha_list):
+    psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=alpha,img_size=64,verbose=False)
+    psnr_mean[0,index]=np.mean(psnr)
+    ssim_mean[0,index]=np.mean(ssi)
+    psnr_std[0,index]=np.std(psnr)
+    ssim_std[0,index]=np.std(ssi)
+
+    psnr,ssi= test_model_on_data(model_name='pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth',pattern_order='low_freq',alpha=alpha,img_size=128,verbose=False)
+    psnr_mean[0,index]=np.mean(psnr)
+    ssim_mean[0,index]=np.mean(ssi)
+    psnr_std[0,index]=np.std(psnr)
+    ssim_std[0,index]=np.std(ssi)
+
+
+#%% 
+# Create a 2x2 grid of subplots
+fig, axes = plt.subplots(2, 2, figsize=(8, 6))  # 2 rows, 2 columns
+
+# Accessing each subplot
+axes[0, 0].plot(alpha_list, psnr_mean)  # Top-left
+axes[0, 0].set_title("PSNR Mean")
+axes[0,0].set_xlabel("Noise level")
+axes[0,0].set_legend( ["70_lf","low_freq"])
+
+axes[0, 1].plot(alpha_list, ssim_mean)  # Top-right
+axes[0, 1].set_title("SSIM Mean")
+axes[0,1].set_xlabel("Noise level")
+axes[0,1].set_legend( ["70_lf","low_freq"])
+
+
+axes[1, 0].plot(alpha_list, psnr_std)  # Bottom-left
+axes[1, 0].set_title("PSNR STD")
+axes[1,0].set_xlabel("Noise level")
+axes[1,0].set_legend( ["70_lf","low_freq"])
+
+
+axes[1, 1].plot(alpha_list, ssim_std)  # Bottom-right
+axes[1, 1].set_title("SSIM STD")
+axes[1,1].set_xlabel("Noise level")
+axes[1,1].set_legend( ["70_lf","low_freq"])
+
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
+
+# Show the plots
+plt.show()
 # %%
