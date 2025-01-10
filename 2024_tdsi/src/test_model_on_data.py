@@ -87,7 +87,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
     dataloader = torch.utils.data.DataLoader(
         dataset, 
-        batch_size=10, 
+        batch_size=5, 
         shuffle=False
         )
 
@@ -160,19 +160,53 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 # %% 
 psnr_tab= np.zeros((3,5))
 ssim_tab= np.zeros((3,5))
-psnr,ssi = test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=False)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
-psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
 psnr_tab[1,:]=psnr.squeeze()
 ssim_tab[1,:]=ssi.squeeze()
 psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
 psnr_tab[2,:]=psnr.squeeze()
 ssim_tab[2,:]=ssi.squeeze()
+#%% plotting the results
+psnr_mean = psnr_tab.mean(axis=1)
+psnr_std = psnr_tab.std(axis=1)
+
+ssim_mean = ssim_tab.mean(axis=1)
+ssim_std = ssim_tab.std(axis=1)
+
+# Plotting the results
+x = np.arange(psnr_tab.shape[0])  # Number of models
+
+plt.figure(figsize=(12, 6))
+
+# Plot PSNR
+plt.subplot(1, 2, 1)
+plt.errorbar(x, psnr_mean, yerr=psnr_std, fmt='o', capsize=5, label='PSNR', color='blue')
+plt.xticks(x, [f'Model {i+1}' for i in x])
+plt.title('PSNR Mean and Std')
+plt.xlabel('Models')
+plt.ylabel('PSNR')
+plt.grid(True)
+plt.legend()
+
+# Plot SSIM
+plt.subplot(1, 2, 2)
+plt.errorbar(x, ssim_mean, yerr=ssim_std, fmt='o', capsize=5, label='SSIM', color='green')
+plt.xticks(x, [f'Model {i+1}' for i in x])
+plt.title('SSIM Mean and Std')
+plt.xlabel('Models')
+plt.ylabel('SSIM')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
 
 #%% 
 
-psnr,ssi = test_model_on_data(model_name='pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth',pattern_order='low_freq',alpha=10,img_size=128,verbose=False,model_path='C:\\Users\\marti\\OneDrive - INSA Lyon\\5GE\TDSI\Projet\\fork_sami\\image_recontruction_ML-1\\2024_tdsi\\model')
+psnr,ssi = test_model_on_data(model_name='pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth',pattern_order='low_freq',alpha=10,img_size=128,verbose=False)
 
 
 
@@ -183,13 +217,13 @@ ssim_mean=np.zeros((2,len(alpha_list)))
 psnr_std=np.zeros((2,len(alpha_list)))
 ssim_std=np.zeros((2,len(alpha_list)))
 for index,alpha in enumerate(alpha_list):
-    psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=alpha,img_size=64,verbose=False)
+    psnr,ssi= test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=alpha,img_size=64,verbose=False)
     psnr_mean[0,index]=np.mean(psnr)
     ssim_mean[0,index]=np.mean(ssi)
     psnr_std[0,index]=np.std(psnr)
     ssim_std[0,index]=np.std(ssi)
 
-    psnr,ssi= test_model_on_data(model_name='pinv-net_unet_imagenet_N0_10_m_hadam-split_N_128_M_4096_epo_30_lr_0.001_sss_10_sdr_0.5_bs_512_reg_1e-07_retrained_light.pth',pattern_order='low_freq',alpha=alpha,img_size=128,verbose=False)
+    psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=alpha,img_size=128,verbose=False)
     psnr_mean[1,index]=np.mean(psnr)
     ssim_mean[1,index]=np.mean(ssi)
     psnr_std[1,index]=np.std(psnr)
