@@ -1,3 +1,4 @@
+#%%
 import os
 from pathlib import Path
 
@@ -72,8 +73,7 @@ M = img_size ** 2 // subsampling_factor  # Number of measurements (1/4 of the pi
 
 # Choose the pattern order
 
-
-#order_name = 'low_freq'
+order_name = 'low_freq'
 #order_name = 'naive'
 #order_name = 'high_freq'
 #order_name = 'variance'
@@ -81,7 +81,7 @@ M = img_size ** 2 // subsampling_factor  # Number of measurements (1/4 of the pi
 # order_name = 'random_variance'
 # order_name = 'random_variance_2'
 # order_name = 'random_variance_3'
-order_name='70_lf'
+#order_name='70_lf'
 
 
 # In[ ]:
@@ -95,7 +95,7 @@ data_root = Path("./data_model_training")  # path to data folder (where the data
 batch_size = 256
 
 # Dataloader for STL-10 dataset
-mode_run = False # Set to True to run the training
+mode_run = True # Set to True to run the training
 if mode_run:
     dataloaders = data_loaders_stl10(
         data_root,
@@ -147,9 +147,6 @@ model = PinvNet(noise_op, prep_op, denoi=denoiser)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 # Use multiple GPUs if available
-if torch.cuda.device_count() > 1:
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
 
 model = model.to(device)
 
@@ -180,7 +177,7 @@ from datetime import datetime
 
 # Parameters
 model_root = Path(model_folder)  # path to model saving files
-num_epochs = 5  # number of training epochs (num_epochs = 30)
+num_epochs = 50  # number of training epochs (num_epochs = 30)
 checkpoint_interval = 2  # interval between saving model checkpoints
 tb_freq = (
     50  # interval between logging to Tensorboard (iterations through the dataloader)
@@ -220,8 +217,8 @@ from spyrit.core.train import save_net
 if mode_run:
     # Training parameters
     train_type = "N0_{:g}".format(N0)
-    arch = "pinv-net"
-    denoi = "Unet"
+    arch = "pinv-net_BF"
+    denoi = "Unet_weight_decay"
     data = "stl10"
     reg = 1e-7  # Default value
     suffix = "N_{}_M_{}_epo_{}_lr_{}_sss_{}_sdr_{}_bs_{}".format(
