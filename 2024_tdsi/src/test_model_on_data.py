@@ -157,9 +157,13 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
 
 
-# %% 
-psnr_tab= np.zeros((3,5))
-ssim_tab= np.zeros((3,5))
+# %% Test 3 models
+nb_models=3 # number of diff models to test
+size_db=5 # number of images in the database
+
+psnr_tab= np.zeros((nb_models,size_db)) # Stores the psnr for each model
+ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
+
 psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=False)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
@@ -169,7 +173,8 @@ ssim_tab[1,:]=ssi.squeeze()
 psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
 psnr_tab[2,:]=psnr.squeeze()
 ssim_tab[2,:]=ssi.squeeze()
-#%% plotting the results
+#%% Plotting the results in an error bar plot
+
 psnr_mean = psnr_tab.mean(axis=1)
 psnr_std = psnr_tab.std(axis=1)
 
@@ -177,16 +182,18 @@ ssim_mean = ssim_tab.mean(axis=1)
 ssim_std = ssim_tab.std(axis=1)
 
 # Plotting the results
-x = np.arange(psnr_tab.shape[0])  # Number of models
+x = np.arange(psnr_tab.shape[0])  # Number of models vector
 
 plt.figure(figsize=(12, 6))
+plt.figure(figsize=(15, 6))
 
 # Plot PSNR
-plt.subplot(1, 2, 1)
+plt.subplot(1, 2, 1) #Subplot for PSNR plotting
 plt.errorbar(x, psnr_mean, yerr=psnr_std, fmt='o', capsize=5, label='PSNR', color='blue')
-plt.xticks(x, [f'Model {i+1}' for i in x])
+# plt.xticks(x, [f'Model {i+1}' for i in x])
+plt.xticks(x, ['Low_freq with weight regularization', '70_lf with weight regularization', '70_lf no weight regularization'])
 plt.title('PSNR Mean and Std')
-plt.xlabel('Models')
+plt.xlabel('MODELS')
 plt.ylabel('PSNR')
 plt.grid(True)
 plt.legend()
@@ -194,9 +201,10 @@ plt.legend()
 # Plot SSIM
 plt.subplot(1, 2, 2)
 plt.errorbar(x, ssim_mean, yerr=ssim_std, fmt='o', capsize=5, label='SSIM', color='green')
-plt.xticks(x, [f'Model {i+1}' for i in x])
+# plt.xticks(x, [f'Model {i+1}' for i in x])
+plt.xticks(x, ['Low_freq with weight regularization', '70_lf with weight regularization', '70_lf no weight regularization'])
 plt.title('SSIM Mean and Std')
-plt.xlabel('Models')
+plt.xlabel('MODELS')
 plt.ylabel('SSIM')
 plt.grid(True)
 plt.legend()
