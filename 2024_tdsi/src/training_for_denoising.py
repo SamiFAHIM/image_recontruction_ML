@@ -95,7 +95,7 @@ data_root = Path("./data_model_training")  # path to data folder (where the data
 batch_size = 256
 
 # Dataloader for STL-10 dataset
-mode_run = True # Set to True to run the training
+mode_run = False # Set to True to run the training
 if mode_run:
     dataloaders = data_loaders_stl10(
         data_root,
@@ -159,7 +159,8 @@ model = model.to(device)
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
-from spyrit.core.train import save_net, Weight_Decay_Loss , load_net
+from spyrit.core.train import save_net , load_net
+from src.Weight_Decay_Loss import Weight_Decay_Loss
 
 # Parameters
 lr = 1e-3
