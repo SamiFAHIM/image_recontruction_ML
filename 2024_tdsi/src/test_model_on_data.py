@@ -65,7 +65,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
     if (model_name is None) or (pattern_order is None):
         print("Please provide model name and pattern order")
         return
-    image_folder = 'data/images/'       # images for simulated measurements
+    image_folder = 'data/images'       # images for simulated measurements
     image_folder_full = Path.cwd() / Path(image_folder)
     if model_path is None:
         model_folder = 'model/'             # reconstruction models
@@ -87,7 +87,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
     dataloader = torch.utils.data.DataLoader(
         dataset, 
-        batch_size=5, 
+        batch_size=100, 
         shuffle=False
         )
 
@@ -148,7 +148,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
         if verbose:
             plt.figure()
             plt.imshow(x_rec.view(h, w).cpu().numpy(), cmap='gray')
-            plt.title('Reconstructed image')
+            plt.title(f'Reconstructed image with pattern {pattern_order}')           
             plt.colorbar()
             plt.show()
         psnr_tab[i,0]=psnr_(X1.view(h, h).cpu().numpy(), x_rec.view(h, h).cpu().numpy())  
@@ -159,7 +159,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
 # %% Test 3 models
 nb_models=3 # number of diff models to test
-size_db=5 # number of images in the database
+size_db=  100 # number of images in the database
 
 psnr_tab= np.zeros((nb_models,size_db)) # Stores the psnr for each model
 ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
