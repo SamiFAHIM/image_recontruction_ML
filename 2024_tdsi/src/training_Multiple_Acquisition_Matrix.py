@@ -138,9 +138,9 @@ def train_for_order(order_name, model, dataloaders, criterion, optimizer, schedu
     noise_op = noise.Poisson(meas_op,alpha=alpha)
     prep_op = prep.SplitPoisson(alpha, meas_op)
     torch.cuda.empty_cache()
-
-    denoiser = Unet()
-    model = PinvNet(noise_op, prep_op, denoi=denoiser)
+    model.noise_op = noise_op
+    model.prep_op = prep_op
+    
 
     # Send to GPU if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -200,6 +200,8 @@ loss = nn.MSELoss()
 criterion = Weight_Decay_Loss(loss)
 optimizer = optim.Adam(model.parameters(), lr=lr)
 scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+denoiser = Unet()
+model = PinvNet(noise_op=None, prep_op=None, denoi=denoiser)  # Placeholder ops; they will be updated dynamically
 
 # Train the model for each order
 if mode_run:
