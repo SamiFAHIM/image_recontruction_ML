@@ -95,7 +95,7 @@ data_root = Path("./data_model_training")  # path to data folder (where the data
 batch_size = 256
 
 # Dataloader for STL-10 dataset
-mode_run = False # Set to True to run the training
+mode_run = True # Set to True to run the training
 if mode_run:
     dataloaders = data_loaders_stl10(
         data_root,
@@ -204,7 +204,7 @@ scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
 # Train the model for each order
 if mode_run:
     # Define the orders and the number of epochs per segment
-    base_orders = ["variance", "70_lf", "random"]
+    base_orders = ["low_freq", "70_lf", "random"]
     epochs_per_segment = 2  # Number of epochs per segment
     total_epochs = 30  # Total epochs for training (adjust as needed)
 
@@ -215,8 +215,8 @@ if mode_run:
             orders.append((order_name, epochs_per_segment))
 
     # Shuffle the orders for randomness
-    np.random.seed(42)  # Ensure reproducibility
-    np.random.shuffle(orders)
+    #np.random.seed(42)  # Ensure reproducibility
+    #np.random.shuffle(orders)
 
     # Train the model for each shuffled order
     for order_name, epochs in orders:
