@@ -137,7 +137,7 @@ def train_for_order(order_name, model, dataloaders, criterion, optimizer, schedu
     meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
     noise_op = noise.Poisson(meas_op,alpha=alpha)
     prep_op = prep.SplitPoisson(alpha, meas_op)
-    torch.cuda.empty_cache()
+    
     model.noise_op = noise_op
     model.prep_op = prep_op
     
@@ -187,8 +187,20 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 from spyrit.core.train import save_net , load_net
 from src.Weight_Decay_Loss import Weight_Decay_Loss
+mask_basis = np.zeros((h, h))
+mask_basis.flat[:M] = 1 # M valeurs qui sont égales à 1
+Ord_rec = choose_pattern_order(order_name, img_size)
+mask = sort_by_significance(mask_basis, Ord_rec, axis="flatten")
+
+im = plt.imshow(mask)
+plt.title("Acquisition in " + order_name + " order", fontsize=20)
+add_colorbar(im, "bottom", size="20%")
+
+meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
+noise_op = noise.Poisson(meas_op,alpha=alpha)
+prep_op = prep.SplitPoisson(alpha, meas_op)
 denoiser = Unet()
-model = PinvNet(None, None, denoi=denoiser).to(device)  # None for noise_op and prep_op, will update later
+model = PinvNet(noise_op, prep_op, denoi=denoiser)  # None for noise_op and prep_op, will update later
 
 # Define training parameters
 num_epochs_per_order = 10  # Number of epochs for each acquisition order
@@ -200,8 +212,6 @@ loss = nn.MSELoss()
 criterion = Weight_Decay_Loss(loss)
 optimizer = optim.Adam(model.parameters(), lr=lr)
 scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
-denoiser = Unet()
-model = PinvNet(noise_op=None, prep_op=None, denoi=denoiser)  # Placeholder ops; they will be updated dynamically
 
 # Train the model for each order
 if mode_run:
