@@ -39,7 +39,7 @@ from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
 from src.pattern_order import choose_pattern_order
  #%% 
-def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,alpha=10,und=4,img_size=64,verbose=False,model_path=None):
+def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,alpha=10,und=4,img_size=64,verbose=False,model_path=None,nb_images=5):
     """
     Test a denoising model on a set of images.
 
@@ -87,7 +87,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
     dataloader = torch.utils.data.DataLoader(
         dataset, 
-        batch_size=100, 
+        batch_size=nb_images, 
         shuffle=False
         )
 
@@ -120,7 +120,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
     noise_op.alpha = alpha
     denoi_net = model_type()
     denoi_net.eval()
-    print("denoi",denoi_net.training)
+    # print("denoi",denoi_net.training)
     full_op = recon.PinvNet ( noise_op , prep_op, denoi_net)
     data_name = model_name
     model_unet_path = os.path.join(model_folder_full, data_name)
@@ -128,7 +128,8 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
     full_op.eval()
     psnr_tab=np.zeros((x.shape[0],1))
     ssim_tab=np.zeros((x.shape[0],1))
-    print ("valeur des pixels", x.min(), x.max())
+    if verbose:
+        print ("valeur des pixels", x.min(), x.max())
     for i,image in enumerate(x):
         X1 = x[i:i+1, :, :, :].detach().clone()
         if (verbose):
@@ -149,7 +150,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
         with torch.no_grad():
             
             x_rec = full_op.reconstruct(y)
-            print("fullop",full_op.training)
+            # print("fullop",full_op.training)
         if verbose:
             plt.figure()
             plt.imshow(x_rec.view(h, w).cpu().numpy(), cmap='gray')
@@ -162,25 +163,29 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
 
 
-# %% Test 3 models
+# %% 
+# 1st Model
 nb_models=3 # number of diff models to test
 size_db=  100 # number of images in the database
-
+order_name="70_lfcorr"
 psnr_tab= np.zeros((nb_models,size_db)) # Stores the psnr for each model
 ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
 
-psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=True)
+psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
 #%%
-psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=False)
+#2nd model
+psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_bf_70_lf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[1,:]=psnr.squeeze()
 ssim_tab[1,:]=ssi.squeeze()
 #%%
-psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=False)
+#3rd model
+psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_bf_hf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[2,:]=psnr.squeeze()
 ssim_tab[2,:]=ssi.squeeze()
-#%% Plotting the results in an error bar plot
+#%%
+#  Plotting the results in an error bar plot
 
 psnr_mean = psnr_tab.mean(axis=1)
 psnr_std = psnr_tab.std(axis=1)
@@ -198,8 +203,8 @@ plt.figure(figsize=(15, 6))
 plt.subplot(1, 2, 1) #Subplot for PSNR plotting
 plt.errorbar(x, psnr_mean, yerr=psnr_std, fmt='o', capsize=5, label='PSNR', color='blue')
 # plt.xticks(x, [f'Model {i+1}' for i in x])
-plt.xticks(x, ['Low_freq with weight regularization', '70_lf with weight regularization', '70_lf no weight regularization'])
-plt.title('PSNR Mean and Std')
+plt.xticks(x, ['Low_freq UNet', 'bf_70_lf_random_Unet', 'bf_hf_random_Unet'])
+plt.title('PSNR Mean and Std, inference ='+ order_name)
 plt.xlabel('MODELS')
 plt.ylabel('PSNR')
 plt.grid(True)
@@ -210,7 +215,7 @@ plt.subplot(1, 2, 2)
 plt.errorbar(x, ssim_mean, yerr=ssim_std, fmt='o', capsize=5, label='SSIM', color='green')
 # plt.xticks(x, [f'Model {i+1}' for i in x])
 plt.xticks(x, ['Low_freq with weight regularization', '70_lf with weight regularization', '70_lf no weight regularization'])
-plt.title('SSIM Mean and Std')
+plt.title('SSIM Mean and Std, inference ='+ order_name)
 plt.xlabel('MODELS')
 plt.ylabel('SSIM')
 plt.grid(True)
