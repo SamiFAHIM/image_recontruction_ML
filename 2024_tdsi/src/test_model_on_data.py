@@ -113,19 +113,22 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
     # SIMULATE MEASUREMENTS
     h=img_size
-    alpha = alpha
     meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
     noise_op = noise.Poisson(meas_op, alpha)
     prep_op = prep.SplitPoisson(alpha, meas_op)
     torch.manual_seed(0)    # for reproducibility
     noise_op.alpha = alpha
     denoi_net = model_type()
+    denoi_net.eval()
+    print("denoi",denoi_net.training)
     full_op = recon.PinvNet ( noise_op , prep_op, denoi_net)
     data_name = model_name
     model_unet_path = os.path.join(model_folder_full, data_name)
     train.load_net(model_unet_path, full_op, device, False)
+    full_op.eval()
     psnr_tab=np.zeros((x.shape[0],1))
     ssim_tab=np.zeros((x.shape[0],1))
+    print ("valeur des pixels", x.min(), x.max())
     for i,image in enumerate(x):
         X1 = x[i:i+1, :, :, :].detach().clone()
         if (verbose):
@@ -144,7 +147,9 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
             plt.show()
 
         with torch.no_grad():
+            
             x_rec = full_op.reconstruct(y)
+            print("fullop",full_op.training)
         if verbose:
             plt.figure()
             plt.imshow(x_rec.view(h, w).cpu().numpy(), cmap='gray')
@@ -164,13 +169,15 @@ size_db=  100 # number of images in the database
 psnr_tab= np.zeros((nb_models,size_db)) # Stores the psnr for each model
 ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
 
-psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=False)
+psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=True)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
-psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+#%%
+psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=False)
 psnr_tab[1,:]=psnr.squeeze()
 ssim_tab[1,:]=ssi.squeeze()
-psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lf',alpha=10,img_size=64,verbose=False)
+#%%
+psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=False)
 psnr_tab[2,:]=psnr.squeeze()
 ssim_tab[2,:]=ssi.squeeze()
 #%% Plotting the results in an error bar plot
@@ -231,7 +238,7 @@ for index,alpha in enumerate(alpha_list):
     psnr_std[0,index]=np.std(psnr)
     ssim_std[0,index]=np.std(ssi)
 
-    psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=alpha,img_size=128,verbose=False)
+    psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='lf_70',alpha=alpha,img_size=128,verbose=False)
     psnr_mean[1,index]=np.mean(psnr)
     ssim_mean[1,index]=np.mean(ssi)
     psnr_std[1,index]=np.std(psnr)
