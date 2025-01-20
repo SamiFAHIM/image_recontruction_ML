@@ -284,3 +284,4 @@ plt.tight_layout()
 # Show the plots
 plt.show()
 # %%
+test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='variance',alpha=10,img_size=64,verbose=True)

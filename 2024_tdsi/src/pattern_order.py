@@ -30,18 +30,31 @@ def choose_pattern_order(order_name, img_size):
         Ord_rec = np.ones((img_size, img_size))
 
     elif order_name == 'variance':
-        if img_size == 128:
-             cov_name = f'Cov_8_{img_size}x{img_size}.npy'
-        else:
-            cov_name = f'Cov_{img_size}x{img_size}.npy'
+        # if img_size == 128:
+        #      cov_name = f'Cov_8_{img_size}x{img_size}.npy'
+        # else:
+        #     cov_name = f'Cov_{img_size}x{img_size}.npy'
 
-        #cov_path =  os.path.join(stat_folder_full, cov_name)
-        #print(f"Loading covariance matrix from: {cov_path}")
-        #Cov = np.load(cov_path)
-        Cov = np.ones((img_size, img_size))
+        # cov_path =  os.path.join(stat_folder_full, cov_name)
+        # print(f"Loading covariance matrix from: {cov_path}")
+        # Cov = np.load(cov_path)
+        # Cov = np.ones((img_size, img_size))
+        # print(f"Cov matrix {cov_name} loaded")
+        # print ("the size of the cov matrix", Cov.shape)
+        # Ord_rec = Cov2Var(Cov)
+        # print("the size of the Ord_rec", Ord_rec.shape)
+
+        if img_size == 128:
+            cov_name = 'Cov_8_%dx%d.npy' % (img_size, img_size)
+        else:
+            cov_name = 'Cov_%dx%d.npy' % (img_size, img_size)
+
+        Cov = np.load(stat_folder_full / Path(cov_name))
         print(f"Cov matrix {cov_name} loaded")
-        print ("the size of the cov matrix", Cov.shape)
+
         Ord_rec = Cov2Var(Cov)
+        print("the size of the Ord_rec", Ord_rec.shape)
+
 
     elif order_name == 'random':
     #     set random pixel of the Ord_rec to 1
@@ -179,6 +192,6 @@ def choose_pattern_order(order_name, img_size):
 
     return Ord_rec
 # %% 
-choose_pattern_order("70_lfcorr",128)
+# choose_pattern_order("variance",128)
 
 # %%

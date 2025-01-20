@@ -91,7 +91,7 @@ def choose_pattern_order(order_name, img_size):
 # Experimental data
 image_folder = 'data/images/'       # images for simulated measurements
 model_folder = 'model/'             # reconstruction models
-stat_folder  = 'src/stat/'              # statistics
+stat_folder  = 'stat/'              # statistics
 
 # Full paths
 image_folder_full = Path.cwd() / Path(image_folder)
@@ -158,7 +158,7 @@ order_name = 'variance'
 #%% 
 print("current directory", Path.cwd())
 Ord_rec = choose_pattern_order(order_name, img_size)
-
+print(Ord_rec.shape)
 # Mask of order
 mask_basis = np.zeros((h, h))
 mask_basis.flat[:M] = 1
