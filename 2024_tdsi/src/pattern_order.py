@@ -1,3 +1,4 @@
+# %% 
 from pathlib import Path
 import numpy as np
 from spyrit.misc.statistics import Cov2Var
@@ -113,11 +114,71 @@ def choose_pattern_order(order_name, img_size):
         Ord_rec[quad_size:,:quad_size] = third_quadrant
         Ord_rec[quad_size:,quad_size:] = fourth_quadrant
 
-    # elif order_name == 'random_variance_3':
-    #     # TODO
+    elif order_name == '70_lfcorr':
+        quad_size=int(img_size/2)
+        eighth_size=int(quad_size/2)
+        num_samples_q1= int(M*0.7)
+        num_samples_q2= int(M*0.1)
+        num_samples_q3= int(M*0.1)
+        num_samples_q4= int(M*0.1)
+        print("M=",M)
+        
+        print("samples1",num_samples_q1+num_samples_q2+num_samples_q3+ num_samples_q4)
+        num_samples_q1=num_samples_q1 + (M-(num_samples_q1+num_samples_q2+num_samples_q3+ num_samples_q4))
+        print("samples2",num_samples_q1+num_samples_q2+num_samples_q3+ num_samples_q4)
+        
+        first_quadrant= np.zeros((quad_size,quad_size))
+        second_quadrant= np.zeros((quad_size,quad_size))
+        third_quadrant= np.zeros((quad_size,quad_size))
+        fourth_quadrant= np.zeros((quad_size,quad_size))
+
+        first_eighth =np.ones((eighth_size,eighth_size))
+        e2,e3,e4 =np.zeros((eighth_size,eighth_size)),np.zeros((eighth_size,eighth_size)),np.zeros((eighth_size,eighth_size))
+        q1_samples_rem=num_samples_q1-first_eighth.size
+        print("q1_saples_rem=",q1_samples_rem)
+        print("q1_samples=",num_samples_q1)
+        print("first_eighth.size",first_eighth.size)
+        e2_samples,e3_samples,e4_samples = int(q1_samples_rem/3),int(q1_samples_rem/3),int(q1_samples_rem/3)
+        e4_samples=e4_samples+(q1_samples_rem-(e2_samples+e3_samples+e4_samples))
+        print("rest=", num_samples_q1-(first_eighth.size+e2_samples+e3_samples+e4_samples))
+        indices_e2=np.random.choice(first_eighth.size, e2_samples, replace=False)
+        indices_e3=np.random.choice(first_eighth.size, e3_samples, replace=False)
+        indices_e4=np.random.choice(first_eighth.size, e4_samples, replace=False)
+        e2.flat[indices_e2] = 1
+        e3.flat[indices_e3] = 1
+        e4.flat[indices_e4] = 1
+        first_quadrant[:eighth_size,:eighth_size] = first_eighth
+        first_quadrant[:eighth_size,eighth_size:] = e2
+        first_quadrant[eighth_size:,:eighth_size] = e3
+        first_quadrant[eighth_size:,eighth_size:] = e4
+        S= first_quadrant.size
+        indices_q2 = np.random.choice(S, num_samples_q2, replace=False)
+        indices_q3 = np.random.choice(S, num_samples_q3, replace=False)
+        indices_q4 = np.random.choice(S, num_samples_q4, replace=False)
+    
+
+        # Modify the original array using its flat iterator
+        second_quadrant.flat[indices_q2] = 1
+        third_quadrant.flat[indices_q3] = 1
+        fourth_quadrant.flat[indices_q4] = 1
+
+        # Initialize the full image
+        
+        Ord_rec = np.zeros((img_size, img_size))
+
+        Ord_rec[:quad_size,:quad_size] = first_quadrant
+        Ord_rec[:quad_size,quad_size:] = second_quadrant
+        Ord_rec[quad_size:,:quad_size] = third_quadrant
+        Ord_rec[quad_size:,quad_size:] = fourth_quadrant
+        print("rest_total=",np.count_nonzero(Ord_rec))
+
 
     else:
         print('Order name is invalid')
         exit(1)
 
     return Ord_rec
+# %% 
+choose_pattern_order("70_lfcorr",128)
+
+# %%
