@@ -135,7 +135,9 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
         if (verbose):
             print("shape of X1 is ", X1.shape)
             plt.figure()
-            imagesc(X1[0, 0, :, :], r"$Original Image$")
+            imagesc(X1[0, 0, :, :],f'Original Image')
+            # plt.title(f'Original image')
+            plt.show()
         b, c, h, w = X1.shape
         y = noise_op(X1)
         m = prep_op(y)
