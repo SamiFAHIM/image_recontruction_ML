@@ -135,7 +135,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
         if (verbose):
             print("shape of X1 is ", X1.shape)
             plt.figure()
-            imagesc(X1[0, 0, :, :], r"$x$")
+            imagesc(X1[0, 0, :, :], r"$Original Image$")
         b, c, h, w = X1.shape
         y = noise_op(X1)
         m = prep_op(y)
@@ -289,4 +289,4 @@ plt.tight_layout()
 # Show the plots
 plt.show()
 # %%
-test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='variance',alpha=10,img_size=64,verbose=True)
+test_model_on_data(model_name='pinv-net_mult_acq_bf_70_lf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=True, nb_images=2)
