@@ -109,11 +109,33 @@ plt.imshow(x_plot.squeeze(), cmap="gray")
 figure, axis = plt.subplots(2, 2)
 with torch.no_grad():
     axis[0,0].imshow(x_plot.squeeze(), cmap="gray")
-    axis[1,0].imshow(x_plot.squeeze(), cmap="gray")
+    order_name = "random"
+    Ord_rec = choose_pattern_order(order_name, img_size)
+    print ("taille du mask", Ord_rec.shape)
+    # Mask of order
+    mask_basis = np.zeros((h, h))
+    mask_basis.flat[:M] = 1
+    mask = sort_by_significance(mask_basis, Ord_rec, axis="flatten")
+    plt.figure(figsize=(10, 10))  # Ajuster la taille selon vos besoins
+    im = plt.imshow(mask)
+    plt.title("Acquisition in " + order_name + " order", fontsize=20)
+    add_colorbar(im, "bottom", size="20%")
+    plt.show()
     # Measurement and noise operators
-    meas_op = meas.HadamSplit(M, h, torch.from_numpy(choose_pattern_order("low_freq",img_size)))
+    meas_op = meas.HadamSplit(M, h, torch.from_numpy(Ord_rec))
     noise_op = noise.Poisson(meas_op)
     prep_op = prep.SplitPoisson(alpha, meas_op)
+    # Extraire l'image à afficher
+    hadamard_pattern = meas_op.H.numpy()[300:301, :].reshape(64, 64)
+
+    # Créer une nouvelle figure avec une taille plus grande
+    plt.figure(figsize=(10, 10))  # Ajuster la taille selon vos besoins
+    plt.imshow(hadamard_pattern)
+    plt.title("Une Matrice d'Hadamard", fontsize=20)
+    plt.axis("off")  # Masquer les axes pour une meilleure lisibilité
+    plt.colorbar()  # Ajouter une barre colorée si nécessaire
+    plt.show()
+   
     # Measurement vectors
     torch.manual_seed(0)    # for reproducibility
     noise_op.alpha = alpha
