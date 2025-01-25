@@ -167,25 +167,31 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
 
 # %% 
 # 1st Model
-nb_models=3 # number of diff models to test
+nb_models=4 # number of diff models to test
 size_db=  100 # number of images in the database
-order_name="70_lfcorr"
+model_names=["Low Frequency with WR","Variance with WR",'70_LF with WR','70_LF without WR']
+order_name="low_freq"
 psnr_tab= np.zeros((nb_models,size_db)) # Stores the psnr for each model
 ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
-
 psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
 #%%
 #2nd model
-psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_bf_70_lf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
+order_name="variance"
+psnr,ssi= test_model_on_data(model_name='pinv-net_variance_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[1,:]=psnr.squeeze()
 ssim_tab[1,:]=ssi.squeeze()
 #%%
-#3rd model
-psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_bf_hf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
+#4th model
+psnr,ssi= test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[2,:]=psnr.squeeze()
 ssim_tab[2,:]=ssi.squeeze()
+#%%
+#5th model
+psnr,ssi= test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
+psnr_tab[3,:]=psnr.squeeze()
+ssim_tab[3,:]=ssi.squeeze()
 #%%
 #  Plotting the results in an error bar plot
 
@@ -198,28 +204,32 @@ ssim_std = ssim_tab.std(axis=1)
 # Plotting the results
 x = np.arange(psnr_tab.shape[0])  # Number of models vector
 
-plt.figure(figsize=(12, 6))
-plt.figure(figsize=(15, 6))
+# plt.figure(figsize=(12, 6))
+# plt.figure(figsize=(15, 6))
 
 # Plot PSNR
-plt.subplot(1, 2, 1) #Subplot for PSNR plotting
+plt.figure()
+# plt.subplot(1, 2, 1) #Subplot for PSNR plotting
 plt.errorbar(x, psnr_mean, yerr=psnr_std, fmt='o', capsize=5, label='PSNR', color='blue')
 # plt.xticks(x, [f'Model {i+1}' for i in x])
-plt.xticks(x, ['Low_freq UNet', 'bf_70_lf_random_Unet', 'bf_hf_random_Unet'])
-plt.title('PSNR Mean and Std, inference ='+ order_name)
+plt.xticks(x, model_names)
+plt.title('PSNR Mean and Std with LF inference')
 plt.xlabel('MODELS')
 plt.ylabel('PSNR')
+plt.ylim(10,28)
 plt.grid(True)
 plt.legend()
 
 # Plot SSIM
-plt.subplot(1, 2, 2)
+# plt.subplot(1, 2, 2)
+plt.figure()
 plt.errorbar(x, ssim_mean, yerr=ssim_std, fmt='o', capsize=5, label='SSIM', color='green')
 # plt.xticks(x, [f'Model {i+1}' for i in x])
-plt.xticks(x, ['Low_freq with weight regularization', '70_lf with weight regularization', '70_lf no weight regularization'])
-plt.title('SSIM Mean and Std, inference ='+ order_name)
+plt.xticks(x, model_names)
+plt.title('SSIM Mean and Std with LF inference')
 plt.xlabel('MODELS')
 plt.ylabel('SSIM')
+plt.ylim(0 ,1)
 plt.grid(True)
 plt.legend()
 
@@ -290,5 +300,74 @@ axes[1,1].legend(legend)
 plt.tight_layout()
 # Show the plots
 plt.show()
+# %% 
+alpha =10
+number_of_orders=6
+number_of_models=4
+model_names=["Low Frequency with WR","Variance with WR",'70_LF with WR','70_LF without WR']
+psnr_mean_table=np.zeros((number_of_models,number_of_orders))
+psnr_std_table=np.zeros((number_of_models,number_of_orders))
+ssim_mean_table=np.zeros((number_of_models,number_of_orders))
+ssim_std_table=np.zeros((number_of_models,number_of_orders))
+pattern_list=['low_freq','70_lf','70_lfcorr','variance','random','high_freq']
+#%%first training
+for i in range(0,number_of_orders):
+    psnr,ssi=test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=pattern_list[i],alpha=alpha,img_size=64,verbose=False, nb_images=10)
+    psnr_mean_table[0,i]=np.mean(psnr)
+    ssim_mean_table[0,i]=np.mean(ssi)
+    psnr_std_table[0,i]=np.std(psnr)
+    ssim_std_table[0,i]=np.std(ssi)
+#%% Second training
+for i in range(0,number_of_orders):
+    psnr,ssi=test_model_on_data(model_name='pinv-net_variance_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=pattern_list[i],alpha=alpha,img_size=64,verbose=False, nb_images=10)
+    psnr_mean_table[1,i]=np.mean(psnr)
+    ssim_mean_table[1,i]=np.mean(ssi)
+    psnr_std_table[1,i]=np.std(psnr)
+    ssim_std_table[1,i]=np.std(ssi)
+#%% Third training
+for i in range(0,number_of_orders):
+    psnr,ssi=test_model_on_data(model_name='right_noise_level_pinv-net_Unet_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=pattern_list[i],alpha=alpha,img_size=64,verbose=False, nb_images=100)
+    psnr_mean_table[2,i]=np.mean(psnr)
+    ssim_mean_table[2,i]=np.mean(ssi)
+    psnr_std_table[2,i]=np.std(psnr)
+    ssim_std_table[2,i]=np.std(ssi)
+#%% Fourth training
+for i in range(0,number_of_orders):
+    psnr,ssi=test_model_on_data(model_name='pinv-net_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=pattern_list[i],alpha=alpha,img_size=64,verbose=False, nb_images=100)
+    psnr_mean_table[3,i]=np.mean(psnr)
+    ssim_mean_table[3,i]=np.mean(ssi)
+    psnr_std_table[3,i]=np.std(psnr)
+    ssim_std_table[3,i]=np.std(ssi)
 # %%
-test_model_on_data(model_name='pinv-net_mult_acq_bf_70_lf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='low_freq',alpha=10,img_size=64,verbose=True, nb_images=2)
+plt.figure()
+plt.plot(psnr_mean_table[0,:],'-x')
+plt.plot(psnr_mean_table[1,:],'-x')
+plt.plot(psnr_mean_table[2,:],'-x')
+plt.plot(psnr_mean_table[3,:],'-x')
+plt.xticks([0,1,2,3,4,5],pattern_list)
+plt.xlabel('pattern order')
+plt.ylabel('PSNR')
+plt.ylim(10,28)
+plt.legend(model_names)
+plt.title('PSNR for different Pattern Orders')
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+plt.figure()
+plt.plot(ssim_mean_table[0,:],'-x')
+plt.plot(ssim_mean_table[1,:],'-x')
+plt.plot(ssim_mean_table[2,:],'-x')
+plt.plot(ssim_mean_table[3,:],'-x')
+plt.xticks([0,1,2,3,4,5],pattern_list)
+plt.xlabel('pattern order')
+plt.ylabel('SSIM')
+plt.ylim(0,1)
+plt.legend(model_names)
+plt.title('SSIM for different Pattern Orders')
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+# %% Reconstructed image
+test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order='70_lfcorr',alpha=10,img_size=64,verbose=True, nb_images=1)
