@@ -37,7 +37,7 @@ import spyrit.core.train as train
 from spyrit.misc.disp import add_colorbar, noaxis, imagesc
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from src.pattern_order import choose_pattern_order
+from misc.pattern_order import choose_pattern_order
  #%% 
 def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,alpha=10,und=4,img_size=64,verbose=False,model_path=None,nb_images=5):
     """

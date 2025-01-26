@@ -40,7 +40,7 @@ from spyrit.misc.disp import add_colorbar, noaxis
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from src.pattern_order import choose_pattern_order
+from misc.pattern_order import choose_pattern_order
 
 
 # In[2]: Defining paths, and the device
@@ -160,7 +160,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from spyrit.core.train import save_net , load_net
-from src.Weight_Decay_Loss import Weight_Decay_Loss
+from misc.Weight_Decay_Loss import Weight_Decay_Loss
 
 # Parameters
 lr = 1e-3

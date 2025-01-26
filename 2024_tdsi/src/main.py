@@ -44,7 +44,7 @@ from spyrit.misc.disp import add_colorbar, noaxis
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from src.pattern_order import choose_pattern_order
+from misc.pattern_order import choose_pattern_order
 
 
 # In[2]: Defining paths, and the device
