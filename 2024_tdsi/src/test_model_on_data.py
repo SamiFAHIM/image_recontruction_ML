@@ -128,6 +128,8 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
     full_op.eval()
     psnr_tab=np.zeros((x.shape[0],1))
     ssim_tab=np.zeros((x.shape[0],1))
+    psnr_tab_static=np.zeros((x.shape[0],1))
+    ssim_tab_static=np.zeros((x.shape[0],1))
     if verbose:
         print ("valeur des pixels", x.min(), x.max())
     for i,image in enumerate(x):
@@ -141,8 +143,9 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
         b, c, h, w = X1.shape
         y = noise_op(X1)
         m = prep_op(y)
+        f_stat = meas_op.pinv(m)
         if verbose:
-            f_stat = meas_op.pinv(m)
+            #f_stat = meas_op.pinv(m)
             plt.figure()
             plt.imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
             plt.title('Static reconstruction')
@@ -161,39 +164,66 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
             plt.show()
         psnr_tab[i,0]=psnr_(X1.view(h, h).cpu().numpy(), x_rec.view(h, h).cpu().numpy())  
         ssim_tab[i,0]=ssim(X1.view(h, h).cpu().numpy(), x_rec.view(h, h).cpu().numpy())
-    return psnr_tab,ssim_tab
+        psnr_tab_static[i,0]=psnr_(X1.view(h, h).cpu().numpy(), f_stat.view(h, h).cpu().numpy())  
+        ssim_tab_static[i,0]=ssim(X1.view(h, h).cpu().numpy(), f_stat.view(h, h).cpu().numpy())
+    return psnr_tab,ssim_tab,psnr_tab_static,ssim_tab_static
 
 
 
 # %% 
 # 1st Model
-nb_models=3 # number of diff models to test
-size_db=  100 # number of images in the database
-order_name="70_lfcorr"
+nb_models=4 # number of diff models to test
+size_db=  5 # number of images in the database
+order_name="low_freq"
 psnr_tab= np.zeros((nb_models,size_db)) # Stores the psnr for each model
 ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
+psnr_tab_static= np.zeros((nb_models,size_db)) # Stores the psnr for each model
+ssim_tab_static= np.zeros((nb_models,size_db)) # Stores the ssim for each model
 
-psnr,ssi = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
+psnr,ssi,psnr_static,ssim_static = test_model_on_data(model_name='pinv-net_mult_acq_bf_hf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=True,nb_images=size_db)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
-#%%
+psnr_tab_static[0,:]=psnr_static.squeeze()
+ssim_tab_static[0,:]=ssim_static.squeeze()
+
 #2nd model
-psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_bf_70_lf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
+order_name="low_freq"
+psnr,ssi,psnr_static,ssim_static= test_model_on_data(model_name='pinv-net_mult_acq_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=True,nb_images=size_db)
 psnr_tab[1,:]=psnr.squeeze()
 ssim_tab[1,:]=ssi.squeeze()
-#%%
+psnr_tab_static[1,:]=psnr_static.squeeze()
+ssim_tab_static[1,:]=ssim_static.squeeze()
+
 #3rd model
-psnr,ssi= test_model_on_data(model_name='pinv-net_mult_acq_bf_hf_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
+order_name="low_freq"
+psnr,ssi,psnr_static,ssim_static= test_model_on_data(model_name='pinv-net_mult_acq_bf_70corr_random_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=True,nb_images=size_db)
 psnr_tab[2,:]=psnr.squeeze()
 ssim_tab[2,:]=ssi.squeeze()
+psnr_tab_static[2,:]=psnr_static.squeeze()
+ssim_tab_static[2,:]=ssim_static.squeeze()
+
+order_name="low_freq"
+psnr,ssi,psnr_static,ssim_static= test_model_on_data(model_name='pinv-net_variance_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=True,nb_images=size_db)
+psnr_tab[3,:]=psnr.squeeze()
+ssim_tab[3,:]=ssi.squeeze()
+psnr_tab_static[3,:]=psnr_static.squeeze()
+ssim_tab_static[3,:]=ssim_static.squeeze()
+"""
+order_name="random"
+psnr,ssi,psnr_static,ssim_static= test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
+psnr_tab[4,:]=psnr.squeeze()
+ssim_tab[4,:]=ssi.squeeze()
+psnr_tab_static[4,:]=psnr_static.squeeze()
+ssim_tab_static[4,:]=ssim_static.squeeze()
+"""
 #%%
 #  Plotting the results in an error bar plot
 
-psnr_mean = psnr_tab.mean(axis=1)
-psnr_std = psnr_tab.std(axis=1)
+psnr_mean = psnr_tab_static.mean(axis=1)
+psnr_std = psnr_tab_static.std(axis=1)
 
-ssim_mean = ssim_tab.mean(axis=1)
-ssim_std = ssim_tab.std(axis=1)
+ssim_mean = ssim_tab_static.mean(axis=1)
+ssim_std = ssim_tab_static.std(axis=1)
 
 # Plotting the results
 x = np.arange(psnr_tab.shape[0])  # Number of models vector
@@ -205,10 +235,11 @@ plt.figure(figsize=(15, 6))
 plt.subplot(1, 2, 1) #Subplot for PSNR plotting
 plt.errorbar(x, psnr_mean, yerr=psnr_std, fmt='o', capsize=5, label='PSNR', color='blue')
 # plt.xticks(x, [f'Model {i+1}' for i in x])
-plt.xticks(x, ['Low_freq UNet', 'bf_70_lf_random_Unet', 'bf_hf_random_Unet'])
+plt.xticks(x, ['lf', 'variance', '70_lfcorr','70_lf','random'])
 plt.title('PSNR Mean and Std, inference ='+ order_name)
 plt.xlabel('MODELS')
 plt.ylabel('PSNR')
+plt.ylim(10,28)
 plt.grid(True)
 plt.legend()
 
@@ -216,10 +247,11 @@ plt.legend()
 plt.subplot(1, 2, 2)
 plt.errorbar(x, ssim_mean, yerr=ssim_std, fmt='o', capsize=5, label='SSIM', color='green')
 # plt.xticks(x, [f'Model {i+1}' for i in x])
-plt.xticks(x, ['Low_freq with weight regularization', '70_lf with weight regularization', '70_lf no weight regularization'])
+plt.xticks(x, ['lf', 'variance', '70_lfcorr','70_lf','random'])
 plt.title('SSIM Mean and Std, inference ='+ order_name)
 plt.xlabel('MODELS')
 plt.ylabel('SSIM')
+plt.ylim(0,1)
 plt.grid(True)
 plt.legend()
 
