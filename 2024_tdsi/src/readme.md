@@ -17,7 +17,15 @@ Le répertoire est divise en plusieurs partie:
     -répertoire stat/: Contient les matrices de covariance nécessaire
 
     -répertoire src/:Contient tous les codes utiles
-        -main.py
+        -single_pixel.ipynb: le jupyter notebook qui permet de tester le différentes fonctions à savoir 
+            -visualiser des ordres de reconstructions
+            -faire des reconstructions par pseudo inverse
+            -tester les différents modèles 
+            -tester les différents modèles sur une base de tests
+        -test_model_on_data.py: test les débruiteurs sur plusieurs données et sur plusieurs ordres d'inférence. Devrait pouvoir reconstruire la majorité des courbes que nous avons dans le rapport
+        -training_for_denoising.py: permet de réaliser un entraînement pour les réseaux monomodes
+        -training_Multiple_Acquisition.py: permet de réaliser un entrainement sur les réseaux multimodes
+
     répertoire misc/: Contient les scripts de définition de fonction, et de téléchargement des images nécessaire au fonctionnement 
         -download_data.py: Télécharge les données usuelles pour le fonctionnement de la libraire spyrit A EXECUTER AVANT DE TENTER LES AUTRES FICHIERS
 
@@ -26,17 +34,9 @@ Le répertoire est divise en plusieurs partie:
         -pattern_order.py: Définit la fonction qui permet de définir les différents ordres d'acquisitions Variance, low_freq, 70_lf, 70_lfcorr,high_freq
 
         -Weight_Decay_Loss.py: Définit la loss qu'il faut pour la fonction de cout avec régularisation
-        
+    
+Pour une execution correcte merci d'executer les scripts misc/download_data.py et misc/download_images_stl10.py
 
-explanation of the different file's role :
-- download_data.py : download some natural images for different testing
+Si la base de données d'entrainement  de STL-10 n'est pas télécharger: il faut changer la ligne 106 de src/training_for_denoising.py ou bien de src/Training_Multiple_Acquisition_Matrix à 'True' afin de télécharger les données pour la première fois
 
-- different_pattern_order_testing : reconstruction using different pattern order without denoising, and calculation of metrics PSNR and SSIM
-
-- main.py : just a file for different purpose testing
-- pattern_order.py : a function that sets the reconstruction order with img_size/4 measurements
-- testing_trained_models.py : a file for testing different trained models  
-- training_for_denoising.py : a file to train denoising models
--test_model_on_data.py:This file tests the performance of trained denoising models on specified datasets.
-    -contains test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,alpha=10,und=4,img_size=64,verbose=False,model_path=None)
-    -contains use cases of test_model_on_data function
+Bonne Lecture et en cas de Question n'hesitez pas à nous contacter ;)
