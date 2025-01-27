@@ -194,16 +194,14 @@ ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
 psnr,ssi,_,_ = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
-psnr_tab_static[0,:]=psnr_static.squeeze()
-ssim_tab_static[0,:]=ssim_static.squeeze()
+
 
 #2nd model
 order_name="variance"
 psnr,ssi,_,_= test_model_on_data(model_name='pinv-net_variance_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[1,:]=psnr.squeeze()
 ssim_tab[1,:]=ssi.squeeze()
-psnr_tab_static[1,:]=psnr_static.squeeze()
-ssim_tab_static[1,:]=ssim_static.squeeze()
+
 
 #3rd model
 order_name="70_lfcorr"
@@ -224,11 +222,11 @@ ssim_tab[4,:]=ssi.squeeze()
 #%%
 #  Plotting the results in an error bar plot
 
-psnr_mean = psnr_tab_static.mean(axis=1)
-psnr_std = psnr_tab_static.std(axis=1)
+psnr_mean = np.mean(psnr_tab, axis=1)
+psnr_std = np.std(psnr_tab, axis=1)
 
-ssim_mean = ssim_tab_static.mean(axis=1)
-ssim_std = ssim_tab_static.std(axis=1)
+ssim_mean = np.mean(ssim_tab, axis=1)
+ssim_std = np.std(ssim_tab, axis=1)
 
 # Plotting the results
 x = np.arange(psnr_tab.shape[0])  # Number of models vector
