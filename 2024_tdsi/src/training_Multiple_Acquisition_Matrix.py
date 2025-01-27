@@ -40,7 +40,7 @@ from spyrit.misc.disp import add_colorbar, noaxis
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from src.pattern_order import choose_pattern_order
+from misc.pattern_order import choose_pattern_order
 
 
 # In[2]: Defining paths, and the device
@@ -95,7 +95,7 @@ data_root = Path("./data_model_training")  # path to data folder (where the data
 batch_size = 256
 
 # Dataloader for STL-10 dataset
-mode_run = True # Set to True to run the training
+mode_run = False # Set to True to run the training
 if mode_run:
     dataloaders = data_loaders_stl10(
         data_root,
@@ -186,7 +186,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from spyrit.core.train import save_net , load_net
-from src.Weight_Decay_Loss import Weight_Decay_Loss
+from misc.Weight_Decay_Loss import Weight_Decay_Loss
 mask_basis = np.zeros((h, h))
 mask_basis.flat[:M] = 1 # M valeurs qui sont égales à 1
 Ord_rec = choose_pattern_order(order_name, img_size)

@@ -1,4 +1,14 @@
 #%% IMports
+"""This script performs image reconstruction simulations using Hadamard basis 
+# sampling and various measurement patterns. The main steps include:
+# 1. Setting up the project environment, paths, and device configuration.
+# 2. Loading a grayscale image dataset and selecting a single image for testing.
+# 3. Defining measurement operators, noise models, and reconstruction algorithms.
+# 4. Generating measurements with different sampling patterns (e.g., low-frequency, 
+#    random, variance-based) and reconstructing the image using static methods.
+# 5. Visualizing and comparing the reconstructed images and Hadamard patterns.
+# 6. Computing performance metrics (PSNR, SSIM) to evaluate reconstruction quality.
+"""
 import os
 from pathlib import Path
 
@@ -40,7 +50,7 @@ from spyrit.misc.disp import add_colorbar, noaxis
 from spyrit.misc.statistics import Cov2Var
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from src.pattern_order import choose_pattern_order
+from misc.pattern_order import choose_pattern_order
 
 
 # In[2]: Defining paths, and the device

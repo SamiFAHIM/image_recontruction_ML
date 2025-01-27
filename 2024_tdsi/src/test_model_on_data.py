@@ -37,7 +37,7 @@ import spyrit.core.train as train
 from spyrit.misc.disp import add_colorbar, noaxis, imagesc
 from spyrit.misc.sampling import sort_by_significance
 from spyrit.misc.metrics import psnr_,ssim
-from src.pattern_order import choose_pattern_order
+from misc.pattern_order import choose_pattern_order
  #%% 
 def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,alpha=10,und=4,img_size=64,verbose=False,model_path=None,nb_images=5):
     """
@@ -144,6 +144,7 @@ def test_model_on_data(model_name=None,model_type=nnet.Unet, pattern_order=None,
         y = noise_op(X1)
         m = prep_op(y)
         f_stat = meas_op.pinv(m)
+        f_stat = meas_op.pinv(m)
         if verbose:
             plt.figure()
             plt.imshow(f_stat.view(h, w).cpu().numpy(), cmap='gray')
@@ -193,13 +194,17 @@ ssim_tab= np.zeros((nb_models,size_db)) # Stores the ssim for each model
 psnr,ssi,_,_ = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[0,:]=psnr.squeeze()
 ssim_tab[0,:]=ssi.squeeze()
-#%%
+psnr_tab_static[0,:]=psnr_static.squeeze()
+ssim_tab_static[0,:]=ssim_static.squeeze()
+
 #2nd model
 order_name="variance"
 psnr,ssi,_,_= test_model_on_data(model_name='pinv-net_variance_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
 psnr_tab[1,:]=psnr.squeeze()
 ssim_tab[1,:]=ssi.squeeze()
-#%%
+psnr_tab_static[1,:]=psnr_static.squeeze()
+ssim_tab_static[1,:]=ssim_static.squeeze()
+
 #3rd model
 order_name="70_lfcorr"
 psnr,ssi,_,_= test_model_on_data(model_name='pinv-net_70_lfcorr_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_30_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order=order_name,alpha=10,img_size=64,verbose=False,nb_images=size_db)
@@ -219,11 +224,11 @@ ssim_tab[4,:]=ssi.squeeze()
 #%%
 #  Plotting the results in an error bar plot
 
-psnr_mean = psnr_tab.mean(axis=1)
-psnr_std = psnr_tab.std(axis=1)
+psnr_mean = psnr_tab_static.mean(axis=1)
+psnr_std = psnr_tab_static.std(axis=1)
 
-ssim_mean = ssim_tab.mean(axis=1)
-ssim_std = ssim_tab.std(axis=1)
+ssim_mean = ssim_tab_static.mean(axis=1)
+ssim_std = ssim_tab_static.std(axis=1)
 
 # Plotting the results
 x = np.arange(psnr_tab.shape[0])  # Number of models vector
@@ -240,6 +245,7 @@ plt.xticks(x, model_names,rotation=45,ha='right')
 plt.title('PSNR Mean and Std with LF inference')
 plt.xlabel('MODELS')
 plt.ylabel('PSNR')
+plt.ylim(10,28)
 plt.ylim(10,28)
 plt.grid(True)
 plt.legend()
