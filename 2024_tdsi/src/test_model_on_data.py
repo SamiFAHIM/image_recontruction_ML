@@ -177,7 +177,8 @@ print(f'random: \nmean psnr_avg {psnr.mean()}, ssim_avg {ssi.mean()}, psnr_stat_
 
 size_db=  100 # number of images in the database
 psnr, ssi, psnr_stat, ssim_stat = test_model_on_data(model_name='pinv-net_BF_Unet_weight_decay_stl10_N0_10_N_64_M_1024_epo_50_lr_0.001_sss_10_sdr_0.5_bs_256.pth',pattern_order="low_freq",alpha=10,img_size=64,verbose=False,nb_images=size_db)
-print(f'BF: \nmean psnr_avg {psnr.mean()}, ssim_avg {ssi.mean()}, psnr_stat_avg {psnr_stat.mean()}, ssim_stat_avg {ssim_stat.mean()}')
+#%%
+print(f'BF: \nmean psnr_avg {psnr.mean()}, ssim_avg {ssi.mean()}, psnr_stat_avg {psnr_stat.mean()}, ssim_stat_avg {ssim_stat.mean()},psnr_stat_std {psnr_stat.std()}, ssim_stat_std {ssim_stat.std()}')
  #%% 7°_lfcorr
  
 size_db=  100 # number of images in the database
